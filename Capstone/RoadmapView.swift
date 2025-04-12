@@ -7,30 +7,45 @@ struct RoadmapView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 30) {
-                    ForEach(1...totalStages, id: \.self) { stage in
-                        HStack(spacing: 0) {
-                            RoadmapStageNode(
-                                stage: stage,
-                                isUnlocked: stage <= unlockedStages,
-                                destination: QuizView(stage: stage, totalQuestions: 20, unlockedStages: $unlockedStages)
-                            )
+            GeometryReader { geo in
+                let segmentSpacing: CGFloat = 20
+                let horizontalOffset: CGFloat = 60 // Move this ABOVE where it's used
+                let pathPoints = RoadPath.generatePathPoints(segments: 150, height: geo.size.height * 0.7)
+                let nodeIndexes = stride(from: 0, to: pathPoints.count, by: pathPoints.count / totalStages).map { $0 }
 
-                            // Draw connector to next stage (except after last stage)
-                            if stage != totalStages {
-                                Image(systemName: "arrow.right")
-                                    .font(.title2)
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 10)
-                            }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    ZStack {
+                        // Background gradient sky
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.cyan.opacity(0.2)]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+
+                        // Road path shifted right
+                        RoadPath(points: pathPoints.map { CGPoint(x: $0.x + horizontalOffset, y: $0.y) })
+                            .frame(width: CGFloat(pathPoints.count) * segmentSpacing + horizontalOffset, height: geo.size.height)
+
+                        // Stage nodes
+                        ForEach(0..<totalStages) { index in
+                            let pointIndex = nodeIndexes[index]
+                            let point = pathPoints[pointIndex]
+                            let shiftedPoint = CGPoint(x: point.x + horizontalOffset, y: point.y)
+
+                            RoadmapStageNode(
+                                stage: index + 1,
+                                isUnlocked: index + 1 <= unlockedStages,
+                                destination: QuizView(stage: index + 1, totalQuestions: 20, unlockedStages: $unlockedStages)
+                            )
+                            .position(x: shiftedPoint.x, y: shiftedPoint.y)
                         }
                     }
+                    .frame(width: CGFloat(pathPoints.count) * segmentSpacing + horizontalOffset, height: geo.size.height)
                 }
-                .padding(.horizontal)
-                .frame(height: 160)
             }
             .navigationTitle("🚗 Roadmap")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
