@@ -1,3 +1,39 @@
-What is the speed limit in a school zone?;30 km/h;50 km/h;60 km/h;70 km/h;A
-What should you do at a stop sign?;Stop completely;Slow down;Only stop if other cars are coming;Ignore it;A
-If traffic lights are out, what should you do?;Treat as a 4-way stop;Keep driving;Stop for 5 seconds;Turn around;A
+What should you do at a stop sign?; Stop completely; Slow down; Honk; Speed up; Stop completely; Always stop fully at a stop sign.
+
+What is the speed limit in a school zone?; 30 km/h; 50 km/h; 60 km/h; 40 km/h; 30 km/h; School zones have a reduced speed limit of 30 km/h.
+
+When should you use your turn signals?; Always when turning; Only when changing lanes; Never; Only in emergencies; Always when turning; Turn signals are required whenever changing direction.
+
+What does a flashing yellow light mean?; Proceed with caution; Stop; Speed up; Turn immediately; Proceed with caution; A flashing yellow light means slow down and be alert.
+
+What is the legal blood alcohol limit for fully licensed drivers?; 0.08%; 0.05%; 0.10%; 0.00%; 0.08%; The legal limit for fully licensed drivers is 0.08%.
+
+How far should you be from the steering wheel?; 25 cm; 40 cm; 10 cm; 5 cm; 25 cm; This distance ensures airbag safety.
+
+What does a solid white line mean?; No lane changes; Passing allowed; Stop; Yield; No lane changes; A solid white line means lane changes are not permitted.
+
+What is the meaning of a flashing red light?; Stop, then proceed when safe; Speed up; Yield; Proceed normally; Stop, then proceed when safe; Treat a flashing red light as a stop sign.
+
+What should you do if an emergency vehicle approaches with sirens on?; Pull over and stop; Speed up; Ignore it; Slow down but continue; Pull over and stop; Yield to emergency vehicles by pulling over safely.
+
+What is the main purpose of ABS brakes?; Prevent wheel lockup; Stop faster; Reduce fuel use; Improve acceleration; Prevent wheel lockup; ABS helps maintain steering control during hard braking.
+
+When should you check your blind spots?; Before changing lanes; Only at night; Never; When parked; Before changing lanes; Blind spots should always be checked before lane changes.
+
+What should you do at a railway crossing with no lights?; Stop, look, listen; Speed across; Honk and drive through; Ignore it; Stop, look, listen; Always check before crossing.
+
+When is it illegal to pass another vehicle?; At a solid yellow line; In a school zone; On a highway; In the right lane; At a solid yellow line; A solid yellow line means no passing.
+
+What does a pedestrian crossing sign mean?; Yield to pedestrians; Speed up; Honk at pedestrians; No walking allowed; Yield to pedestrians; Always give pedestrians the right of way.
+
+How often should you check your mirrors?; Every 5-8 seconds; Only when turning; Once a trip; Only at night; Every 5-8 seconds; Checking mirrors frequently helps with awareness.
+
+What is the stopping distance at 50 km/h?; 25m; 10m; 40m; 5m; 25m; Stopping distance increases with speed.
+
+When driving in fog, what should you do?; Use low beams; Use high beams; Speed up; Drive with hazards; Use low beams; High beams cause glare in fog.
+
+What is the best way to handle hydroplaning?; Ease off the gas; Brake hard; Turn sharply; Speed up; Ease off the gas; Avoid sudden moves when hydroplaning.
+
+What does a diamond-shaped sign indicate?; Warning; Speed limit; Stop; School zone; Warning; Diamond signs warn of hazards ahead.
+
+Who has the right of way at a four-way stop?; First to arrive; Last to arrive; Fastest driver; Largest vehicle; First to arrive; The first driver to stop gets to go first.

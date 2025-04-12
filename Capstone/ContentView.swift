@@ -1,24 +1,30 @@
-//
-//  ContentView.swift
-//  Capstone
-//
-//  Created by Nolan Law on 2025-04-11.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack {
+                Text("MPI Driving Quiz")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding()
+
+                NavigationLink(destination: RoadmapView()) {
+                    Text("Start Quiz")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding()
+                }
+            }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
