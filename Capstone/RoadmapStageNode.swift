@@ -1,53 +1,52 @@
 import SwiftUI
 
-struct RoadmapStageNode<Destination: View>: View {
+struct RoadmapStageNode: View {
     let stage: Int
-    let isUnlocked: Bool
-    let destination: Destination
+    let score: Int?
+    let unlocked: Bool
+    let onTap: () -> Void
+
+    var statusColor: Color {
+        if let score = score {
+            return score >= 18 ? .green : .red // Green for passed, red for failed
+        } else if unlocked {
+            return .blue // Current
+        } else {
+            return .gray // Locked
+        }
+    }
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 25, style: .continuous)
-                .fill(isUnlocked ? Color.white : Color.gray.opacity(0.4))
-                .frame(width: 120, height: 150)
-                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 5)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 25, style: .continuous)
-                        .strokeBorder(isUnlocked ? Color.blue : Color.gray, lineWidth: 2)
-                )
+        Button(action: {
+            if unlocked {
+                onTap()
+            }
+        }) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(statusColor)
+                    .frame(width: 75, height: 100)
+                    .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
 
-            VStack(spacing: 10) {
-                Text("Stage \(stage)")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(isUnlocked ? .black : .gray)
+                VStack(spacing: 6) {
+                    Text("S\(stage)")
+                        .font(.headline)
+                        .foregroundColor(.white)
 
-                Image(systemName: isUnlocked ? "checkmark.circle.fill" : "lock.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 35, height: 35)
-                    .foregroundColor(isUnlocked ? .green : .red)
-
-                if isUnlocked {
-                    NavigationLink(destination: destination) {
-                        Text("Start")
-                            .font(.caption)
-                            .bold()
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                            .background(Color.blue)
+                    if let score = score {
+                        Text("\(score)/20")
+                            .font(.subheadline)
                             .foregroundColor(.white)
-                            .cornerRadius(10)
+
+                        Image(systemName: score >= 18 ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(.white)
+                    } else if !unlocked {
+                        Image(systemName: "lock.fill")
+                            .foregroundColor(.white.opacity(0.8))
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    Text("Locked")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
                 }
             }
-            .padding(.vertical)
         }
-        .frame(width: 130, height: 160)
+        .disabled(!unlocked)
     }
 }

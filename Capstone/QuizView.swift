@@ -8,23 +8,29 @@ struct Question {
 }
 
 struct QuizView: View {
+    let stage: Int
+    let totalQuestions: Int
     @Binding var unlockedStages: Int
-    @Environment(\.presentationMode) var presentationMode
+    var onQuizComplete: (() -> Void)? = nil
+
+    @Environment(\.dismiss) var dismiss
     @State private var questions: [Question] = []
-    @State private var currentQuestionIndex: Int = 0
+    @State private var currentQuestionIndex = 0
     @State private var selectedAnswer: String? = nil
     @State private var isCorrect: Bool? = nil
     @State private var score: Int = 0
-    @State private var sessionComplete: Bool = false
-    
-    let stage: Int
-    let totalQuestions: Int
-    
-    init(stage: Int, totalQuestions: Int, unlockedStages: Binding<Int>) {
+    @State private var sessionComplete = false
+
+    init(stage: Int, totalQuestions: Int, unlockedStages: Binding<Int>, onQuizComplete: (() -> Void)? = nil) {
         self.stage = stage
         self.totalQuestions = totalQuestions
         self._unlockedStages = unlockedStages
-        self._questions = State(initialValue: QuizView.loadQuestions(for: stage).shuffled().prefix(totalQuestions).map { $0 })
+        self.onQuizComplete = onQuizComplete
+
+        // Load and shuffle questions for this stage
+        let loadedQuestions = QuizView.loadQuestions(for: stage)
+        let limitedQuestions = Array(loadedQuestions.shuffled().prefix(totalQuestions))
+        self._questions = State(initialValue: limitedQuestions)
     }
 
     var body: some View {
@@ -45,12 +51,16 @@ struct QuizView: View {
 
                         Text("Score: \(score)/\(totalQuestions)")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(score >= 18 ? .green : .red)
 
                         Button("Return to Roadmap") {
-                            unlockedStages = max(unlockedStages, stage + 1)
-                            UserDefaults.standard.set(unlockedStages, forKey: "unlockedStages")
-                            presentationMode.wrappedValue.dismiss()
+                            saveScore(forStage: stage, score: score)
+                            if score >= 18 {
+                                unlockedStages = max(unlockedStages, stage + 1)
+                                UserDefaults.standard.set(unlockedStages, forKey: "unlockedStages")
+                            }
+                            onQuizComplete?()
+                            dismiss()
                         }
                         .padding()
                         .background(Color.orange)
@@ -102,7 +112,7 @@ struct QuizView: View {
                                 .foregroundColor(.black.opacity(0.9))
                                 .padding()
 
-                            Button("Next Question") {
+                            Button(currentQuestionIndex < questions.count - 1 ? "Next Question" : "Finish Quiz") {
                                 nextQuestion()
                             }
                             .padding()
@@ -118,10 +128,49 @@ struct QuizView: View {
                 }
             }
         }
-        .navigationBarBackButtonHidden(true) // Hides default back button
+        .interactiveDismissDisabled(true)
+        .navigationBarBackButtonHidden(true)
     }
 
-    // Loads quiz questions from .txt files dynamically
+    // MARK: - Quiz Logic
+
+    func checkAnswer() {
+        if let selectedAnswer = selectedAnswer {
+            isCorrect = (selectedAnswer == questions[currentQuestionIndex].correctAnswer)
+            if isCorrect == true {
+                score += 1
+            }
+        }
+    }
+
+    func nextQuestion() {
+        if currentQuestionIndex < questions.count - 1 {
+            currentQuestionIndex += 1
+            selectedAnswer = nil
+            isCorrect = nil
+        } else {
+            sessionComplete = true
+        }
+    }
+
+    func getButtonColor(for choice: String) -> Color {
+        if selectedAnswer == nil { return Color.cyan }
+        if choice == selectedAnswer {
+            return isCorrect == true ? Color.green : Color.red
+        }
+        return Color.cyan.opacity(0.6)
+    }
+
+    // MARK: - Score Saving
+
+    func saveScore(forStage stage: Int, score: Int) {
+        var allScores = UserDefaults.standard.dictionary(forKey: "stageScores") as? [String: Int] ?? [:]
+        allScores["stage\(stage)"] = score
+        UserDefaults.standard.set(allScores, forKey: "stageScores")
+    }
+
+    // MARK: - Question Loader
+
     static func loadQuestions(for stage: Int) -> [Question] {
         guard let path = Bundle.main.path(forResource: "questions_stage\(stage)", ofType: "txt") else {
             print("Questions file not found for stage \(stage)!")
@@ -146,33 +195,6 @@ struct QuizView: View {
         } catch {
             print("Error reading file: \(error)")
             return []
-        }
-    }
-
-    func checkAnswer() {
-        if let selectedAnswer = selectedAnswer {
-            isCorrect = (selectedAnswer == questions[currentQuestionIndex].correctAnswer)
-            if isCorrect == true {
-                score += 1
-            }
-        }
-    }
-
-    func getButtonColor(for choice: String) -> Color {
-        if selectedAnswer == nil { return Color.cyan }
-        if choice == selectedAnswer {
-            return isCorrect == true ? Color.green : Color.red
-        }
-        return Color.cyan.opacity(0.6)
-    }
-
-    func nextQuestion() {
-        if currentQuestionIndex < questions.count - 1 {
-            currentQuestionIndex += 1
-            selectedAnswer = nil
-            isCorrect = nil
-        } else {
-            sessionComplete = true
         }
     }
 }
