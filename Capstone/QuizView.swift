@@ -98,23 +98,24 @@ struct QuizView: View {
                 .font(.headline)
                 .foregroundColor(.black)
 
-            if let imageName = question.imageName {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 200)
-                    .cornerRadius(10)
-                    .padding(.bottom, 10)
-            }
-
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white.opacity(0.3))
                 .overlay(
-                    Text(question.text)
-                        .font(.title2)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.black)
-                        .padding()
+                    VStack(spacing: 12) {
+                        Text(questions[currentQuestionIndex].text)
+                            .font(.title2)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.black)
+                            .padding(.horizontal)
+                        if let imageName = questions[currentQuestionIndex].imageName, !imageName.isEmpty {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 180)
+                                .cornerRadius(10)
+                        }
+                    }
+                    .padding()
                 )
                 .padding(.horizontal)
 
