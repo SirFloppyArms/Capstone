@@ -7,11 +7,13 @@ struct RoadPath: View {
         Canvas { context, size in
             var path = Path()
             guard let first = points.first else { return }
+
             path.move(to: first)
             for point in points.dropFirst() {
                 path.addLine(to: point)
             }
 
+            // Road fill
             context.stroke(
                 path,
                 with: .linearGradient(
@@ -22,6 +24,7 @@ struct RoadPath: View {
                 style: StrokeStyle(lineWidth: 40, lineCap: .round, lineJoin: .round)
             )
 
+            // Centerline
             context.stroke(
                 path,
                 with: .color(.yellow),
@@ -31,9 +34,9 @@ struct RoadPath: View {
     }
 
     static func generatePathPoints(
-        segments: Int = 1000, // longer road
-        spacing: CGFloat = 20, // tighter spacing, more detail
-        amplitude: CGFloat = 100, // more dramatic curves
+        segments: Int = 1000,
+        spacing: CGFloat = 20,
+        amplitude: CGFloat = 75,
         seed: CGFloat = 42,
         height: CGFloat = 250
     ) -> [CGPoint] {

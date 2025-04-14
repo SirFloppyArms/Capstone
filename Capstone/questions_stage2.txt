@@ -1,39 +1,20 @@
-What should you do if you miss your exit on the highway?; Keep driving to the next exit; Stop immediately; Reverse on the highway; Make a U-turn; Keep driving to the next exit; Reversing or stopping is extremely dangerous.
-
-When parallel parking, how close should your car be to the curb?; Within 30 cm; 1 meter; 50 cm; 10 cm; Within 30 cm; Staying close prevents obstructing traffic.
-
-What does a red X over a lane mean?; Do not use this lane; Lane is open; Reduce speed; Merge left; Do not use this lane; A red X means the lane is closed.
-
-Who must wear a seatbelt in a car?; Driver and all passengers; Only the driver; Only passengers; No one; Driver and all passengers; Everyone must wear seatbelts.
-
-When can you use high beams?; On unlit roads with no traffic; In the city; During the day; In fog; On unlit roads with no traffic; High beams improve visibility at night.
-
-What is the meaning of a yield sign?; Give the right of way; Stop completely; Speed up; No passing; Give the right of way; Yield means let others go first.
-
-How should you react to an aggressive driver?; Stay calm and avoid them; Challenge them; Honk and block them; Speed past them; Stay calm and avoid them; Avoid escalating road rage situations.
-
-What does a double solid yellow line mean?; No passing in either direction; Passing allowed; Slow down; Merge left; No passing in either direction; A double yellow line means passing is illegal.
-
-What is the maximum speed limit on most highways in Manitoba?; 100 km/h; 90 km/h; 110 km/h; 80 km/h; 100 km/h; Most highways have a speed limit of 100 km/h.
-
-When should you check tire pressure?; Monthly and before long trips; Never; Only when a warning light appears; Every year; Monthly and before long trips; Proper tire pressure improves safety.
-
-What should you do if your brakes fail?; Pump the brakes and downshift; Keep driving; Speed up; Turn off the engine; Pump the brakes and downshift; Try to slow down gradually.
-
-Where should hands be placed on the steering wheel?; 9 and 3 o’clock; 10 and 2 o’clock; 6 and 12 o’clock; 7 and 5 o’clock; 9 and 3 o’clock; This position provides the best control.
-
-What should you do when driving in heavy rain?; Reduce speed and use wipers; Drive at normal speed; Turn off headlights; Use high beams; Reduce speed and use wipers; Wet roads require caution.
-
-What is the purpose of a traffic circle?; Improve traffic flow; Stop all cars; Increase speed limits; Block intersections; Improve traffic flow; Traffic circles reduce congestion.
-
-What does a broken white line mean?; Lane changes allowed; No passing; Yield; Stop; Lane changes allowed; A broken white line separates lanes moving in the same direction.
-
-If your car starts to skid, what should you do?; Steer in the direction of the skid; Brake hard; Turn sharply; Speed up; Steer in the direction of the skid; This helps regain control.
-
-What should you do if a school bus has flashing red lights?; Stop in both directions; Pass carefully; Speed past; Ignore it; Stop in both directions; It's illegal to pass a stopped school bus.
-
-What does a stop line indicate?; Where to stop at an intersection; Speed limit; No stopping; Passing zone; Where to stop at an intersection; The stop line marks the stopping point.
-
-When should you use your horn?; To warn others of danger; All the time; To greet friends; In traffic jams; To warn others of danger; The horn is for emergencies only.
-
-How should you park on a hill?; Turn wheels to prevent rolling; Leave car in neutral; Keep wheels straight; Use only the handbrake; Turn wheels to prevent rolling; This prevents the car from rolling downhill.
+When a green arrow is shown with a red traffic light it means:; Only pedestrians may proceed in the direction of the arrow.; Stop and proceed in the direction of the arrow.; Wait for the green light before driving in the direction of the arrow.; Proceed in the direction of the arrow.; Proceed in the direction of the arrow.; Because the green arrow overrides the red light for that specific direction.;
+This sign means:; Stop.; Stop when requested.; Yield.; Proceed if safe.; Stop.;stop_sign
+When driving on a four-lane divided highway, which of these statements is true?; White lines separate lanes of traffic moving in the opposite direction.; White lines separate lanes of traffic moving in the same direction.; Yellow lines separate lanes of traffic moving in the same direction.; None of the above.; White lines separate lanes of traffic moving in the same direction.; This helps keep same-direction lanes organized and safe.;
+This sign means:; Merging roadways ahead.; Entering two-way roadway.; Slow down.; Turn right.; Merging roadways ahead.;merging_roads_ahead
+What lights should you use when driving in a heavy fog or a snowstorm?; Low beams.; Parking and high beams.; Parking lights.; High beams.; Low beams.; High beams reflect off fog and snow, reducing visibility—low beams are safer.;
+Pedestrian signals consist of symbols of a walking person and an orange hand. What does the orange hand signal mean?; Pedestrians must not enter the roadway toward the signal.; Pedestrians already in the intersection facing the signal may continue to the nearest sidewalk, traffic island, or safety zone.; Pedestrians already in the intersection facing the signal must run to the nearest sidewalk.; Both A and B.; Both A and B.; The orange hand means don’t start crossing, but finish if already crossing.;
+What can be compared to a drugged condition that can result in a fatal crash?; Alertness or awareness.; Drowsiness or fatigue.; Preparedness or responsiveness.; The driver signaling an intention to turn right.; Drowsiness or fatigue.; Fatigue can impair reaction time and judgment similar to alcohol or drugs.;
+While travelling in a rural area, you notice a large farm vehicle ahead of you with flashing lights. You should:; Slow down and be aware that at your current highway speed you will approach farm machinery sooner than expected.; Realize it is a piece of farm equipment capable of travelling at only 40 km/h.; Realize that farm equipment can take up more than ½ of the road width.; All of the above.; All of the above; Farm vehicles are slow, wide, and often unpredictable.;
+This sign means:; Road merges.; Construction ahead.; Barricade ahead.; Speed limit ahead.; Barricade ahead.;barricade_ahead
+After passing the road test, the driver remains at the intermediate stage for a minimum of?; 6 months.; 9 months.; 12 months.; 15 months.; 15 months; This is part of the graduated licensing process to gain more experience.;
+This sign means:; Go.; Yield.; Speed up.; Stop.; Yield.;yield_sign
+You are following a slow moving vehicle on a two-lane road. What can you do?; Not pass the vehicle..; Pass on the left if it is safe and legal.; Pass on the right using the paved shoulder.; None of the above.; Pass on the left if it is safe and legal.; Passing on the left is legal when safe.;
+What do white solid pavement lines indicate?; Traffic moving in opposite directions and cannot change lanes.; Traffic moving in opposite directions and can change lanes.; Traffic moving in the same direction and can change lanes.; Traffic moving in the same direction and cannot change lanes.; Traffic moving in the same direction and cannot change lanes.; Solid white lines discourage or prohibit lane changes.;
+The Highway Traffic Act indicates that on a roadway, cyclists should position themselves:; As close as practicable to the right side of the roadway.; In the centre of the roadway.; As close as practicable to the left side of the roadway.; On the sidewalk.; As close as practicable to the right side of the roadway.; This ensures safety while allowing faster traffic to pass.;
+A flashing amber signal light means the same as a:; Flashing red light.; Stop sign.; Yield sign.; Flashing green light.; Yield sign.; A flashing amber light means slow down and proceed with caution, just like yielding.;
+When your address changes, you must notify Manitoba Public Insurance or an Autopac agent within?; 30 days.; 10 days.; 15 days.; 7 days.; 15 days; You are required to update your records within 15 days of an address change.;
+You must not drive your vehicle faster than:; The posted maximum speed limit.; A speed that is greater than is reasonable and prudent.; A speed that is safe for the conditions.; All of the above.; All of the above.; Because your speed must be appropriate for posted limits and road conditions.;
+When driving directly behind a heavy truck or bus, extra caution must be taken because:; The heavy truck or bus driver may not be able to see you.; The truck or bus blocks your forward visibility.; The tires may dislodge stones.; All of the above.; All of the above.; Large vehicles have blind spots and can cause debris or visibility issues.;
+What does a solid white line on a roadway mean?; Passing is allowed.; Traffic is moving in the opposite direction.; You are in a passing lane.; Passing is not allowed.; Passing is not allowed.; Solid white lines indicate lane changes are discouraged or prohibited.;
+Before leaving your car parked downhill, you should:; Turn the wheels toward the curb or edge of the highway and set your parking brake.; Turn the wheels straight ahead and set your parking brake.; Put the parking brake on only.; Turn the wheels away from the curb or edge of the highway and set your parking brake; Turn the wheels toward the curb or edge of the highway and set your parking brake.; Because this prevents the vehicle from rolling into traffic.;
