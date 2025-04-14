@@ -5,7 +5,6 @@ struct Question: Identifiable {
     let text: String
     let choices: [String]
     let correctAnswer: String
-    let explanation: String
     let imageName: String? // Optional image name for sign/image-based questions
 }
 
@@ -139,10 +138,10 @@ struct QuizView: View {
             }
 
             if selectedAnswer != nil {
-                Text(question.explanation)
-                    .font(.body)
-                    .foregroundColor(.black)
-                    .padding(.top)
+                Text(isCorrect == true ? "Correct" : "Incorrect")
+                    .font(.headline)
+                    .foregroundColor(isCorrect == true ? .green : .red)
+                    .padding(.top, 10)
 
                 Button(currentQuestionIndex < questions.count - 1 ? "Next" : "Finish") {
                     if currentQuestionIndex < questions.count - 1 {
@@ -163,13 +162,20 @@ struct QuizView: View {
 
     // MARK: - Helpers
 
-    private func getButtonColor(for choice: String) -> Color {
+    func getButtonColor(for choice: String) -> Color {
         guard let selected = selectedAnswer else { return .cyan }
-        if choice == selected {
-            return isCorrect == true ? .green : .red
-        } else {
-            return .cyan.opacity(0.6)
+
+        let correct = questions[currentQuestionIndex].correctAnswer
+
+        if choice == correct {
+            return .green // Always green for the correct answer
         }
+
+        if choice == selected {
+            return .red // User's incorrect selection
+        }
+
+        return .cyan.opacity(0.6) // Default for all others
     }
 
     private func saveScore() {
@@ -194,12 +200,11 @@ struct QuizView: View {
                 guard parts.count >= 5 else { return nil }
 
                 let text = parts[0]
-                let choices = Array(parts[1...(parts.count - 4)])
-                let correctAnswer = parts[parts.count - 3]
-                let explanation = parts[parts.count - 2]
+                let choices = Array(parts[1...(parts.count - 3)])
+                let correctAnswer = parts[parts.count - 2]
                 let imageName = parts.last?.isEmpty == true ? nil : parts.last
 
-                return Question(text: text, choices: choices, correctAnswer: correctAnswer, explanation: explanation, imageName: imageName)
+                return Question(text: text, choices: choices, correctAnswer: correctAnswer, imageName: imageName)
             }
         } catch {
             print("Error reading file: \(error)")
