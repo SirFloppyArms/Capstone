@@ -1,18 +1,9 @@
 import SwiftUI
 
-struct Question: Identifiable {
-    let id = UUID()
-    let text: String
-    let choices: [String]
-    let correctAnswer: String
-    let imageName: String?
-}
-
-struct QuizView: View {
+struct TimeTrialQuizView: View {
     let stage: Int
-    let totalQuestions: Int
-    @Binding var unlockedStages: Int
-    var onQuizComplete: (() -> Void)? = nil
+    let totalQuestions: Int = 10
+    var onComplete: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
 
@@ -21,65 +12,51 @@ struct QuizView: View {
     @State private var selectedAnswer: String? = nil
     @State private var isCorrect: Bool? = nil
     @State private var score = 0
+    @State private var timer: Timer?
+    @State private var timeRemaining = 30
     @State private var sessionComplete = false
-
-    init(stage: Int, totalQuestions: Int, unlockedStages: Binding<Int>, onQuizComplete: (() -> Void)? = nil) {
-        self.stage = stage
-        self.totalQuestions = totalQuestions
-        self._unlockedStages = unlockedStages
-        self.onQuizComplete = onQuizComplete
-
-        let loaded = QuizView.loadQuestions(for: stage).shuffled()
-        self._questions = State(initialValue: Array(loaded.prefix(totalQuestions)))
-    }
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [.teal.opacity(0.3), .blue.opacity(0.3)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            LinearGradient(gradient: Gradient(colors: [.orange.opacity(0.2), .red.opacity(0.2)]),
+                           startPoint: .topLeading,
+                           endPoint: .bottomTrailing)
+                .ignoresSafeArea()
 
             VStack(spacing: 20) {
                 if sessionComplete {
                     sessionCompleteView
+                } else if questions.isEmpty {
+                    Text("No questions found!")
+                        .foregroundColor(.white)
                 } else {
-                    if questions.isEmpty {
-                        Text("No questions found!")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                    } else {
-                        quizQuestionView
-                    }
+                    quizQuestionView
                 }
             }
             .padding()
+            .onAppear {
+                loadQuestions()
+            }
         }
         .interactiveDismissDisabled(true)
         .navigationBarBackButtonHidden(true)
+        .onDisappear {
+            timer?.invalidate()
+        }
     }
-
-    // MARK: - Views
 
     private var sessionCompleteView: some View {
         VStack(spacing: 20) {
-            Text("Session Complete!")
+            Text("Time Trial Complete!")
                 .font(.largeTitle.bold())
                 .foregroundColor(.white)
 
             Text("Score: \(score)/\(totalQuestions)")
                 .font(.title2)
-                .foregroundColor(score >= 18 ? .green : .red)
+                .foregroundColor(score >= 7 ? .green : .red)
 
-            Button("Return to Roadmap") {
-                saveScore()
-                if score >= 18 {
-                    unlockedStages = max(unlockedStages, stage + 1)
-                    UserDefaults.standard.set(unlockedStages, forKey: "unlockedStages")
-                }
-                onQuizComplete?()
+            Button("Return") {
+                onComplete?()
                 dismiss()
             }
             .padding()
@@ -93,20 +70,25 @@ struct QuizView: View {
         let question = questions[currentQuestionIndex]
 
         return VStack(spacing: 16) {
-            Text("Stage \(stage) — Question \(currentQuestionIndex + 1)/\(totalQuestions)")
+            Text("Time Trial \(stage) — Q\(currentQuestionIndex + 1)/\(totalQuestions)")
                 .font(.headline)
                 .foregroundColor(.black)
+
+            Text("Time Remaining: \(timeRemaining)s")
+                .font(.subheadline)
+                .foregroundColor(timeRemaining <= 5 ? .red : .black)
 
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white.opacity(0.3))
                 .overlay(
                     VStack(spacing: 12) {
-                        Text(questions[currentQuestionIndex].text)
+                        Text(question.text)
                             .font(.title2)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.black)
                             .padding(.horizontal)
-                        if let imageName = questions[currentQuestionIndex].imageName, !imageName.isEmpty {
+
+                        if let imageName = question.imageName, !imageName.isEmpty {
                             Image(imageName)
                                 .resizable()
                                 .scaledToFit()
@@ -121,6 +103,7 @@ struct QuizView: View {
             ForEach(question.choices, id: \.self) { choice in
                 Button {
                     if selectedAnswer == nil {
+                        timer?.invalidate()
                         selectedAnswer = choice
                         isCorrect = (choice == question.correctAnswer)
                         if isCorrect == true { score += 1 }
@@ -137,19 +120,22 @@ struct QuizView: View {
                 .padding(.horizontal)
             }
 
-            if selectedAnswer != nil {
+            if selectedAnswer != nil || timeRemaining <= 0 {
                 Text(isCorrect == true ? "Correct" : "Incorrect")
                     .font(.headline)
                     .foregroundColor(isCorrect == true ? .green : .red)
                     .padding(.top, 10)
 
-                Button(currentQuestionIndex < questions.count - 1 ? "Next" : "Finish") {
-                    if currentQuestionIndex < questions.count - 1 {
+                Button(currentQuestionIndex < totalQuestions - 1 ? "Next" : "Finish") {
+                    if currentQuestionIndex < totalQuestions - 1 {
                         currentQuestionIndex += 1
                         selectedAnswer = nil
                         isCorrect = nil
+                        timeRemaining = 30
+                        startTimer()
                     } else {
                         sessionComplete = true
+                        timer?.invalidate()
                     }
                 }
                 .padding()
@@ -158,44 +144,52 @@ struct QuizView: View {
                 .cornerRadius(12)
             }
         }
+        .onAppear {
+            startTimer()
+        }
     }
 
-    // MARK: - Helpers
-
-    func getButtonColor(for choice: String) -> Color {
-        guard let selected = selectedAnswer else { return .cyan }
-
-        let correct = questions[currentQuestionIndex].correctAnswer
-
-        if choice == correct {
-            return .green // Always green for the correct answer
+    private func getButtonColor(for choice: String) -> Color {
+        guard let selectedAnswer = selectedAnswer else {
+            return Color.blue
         }
 
-        if choice == selected {
-            return .red // User's incorrect selection
+        if choice == selectedAnswer {
+            return choice == questions[currentQuestionIndex].correctAnswer ? .green : .red
         }
 
-        return .cyan.opacity(0.6) // Default for all others
+        if choice == questions[currentQuestionIndex].correctAnswer {
+            return .green
+        }
+
+        return Color.blue.opacity(0.6)
     }
 
-    private func saveScore() {
-        var allScores = UserDefaults.standard.dictionary(forKey: "stageScores") as? [String: Int] ?? [:]
-        allScores["stage\(stage)"] = score
-        UserDefaults.standard.set(allScores, forKey: "stageScores")
+    private func startTimer() {
+        timer?.invalidate()
+        timeRemaining = 30
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                timer?.invalidate()
+                if selectedAnswer == nil {
+                    isCorrect = false
+                }
+            }
+        }
     }
 
-    // MARK: - Loader
-
-    static func loadQuestions(for stage: Int) -> [Question] {
-        guard let path = Bundle.main.path(forResource: "questions_stage\(stage)", ofType: "txt") else {
-            print("Questions file not found for stage \(stage)")
-            return []
+    private func loadQuestions() {
+        guard let path = Bundle.main.path(forResource: "questions_timeTrial\(stage)", ofType: "txt") else {
+            print("⚠️ File not found: questions_timeTrial\(stage).txt")
+            return
         }
 
         do {
             let lines = try String(contentsOfFile: path).components(separatedBy: "\n")
 
-            return lines.compactMap { line in
+            let loadedQuestions = lines.compactMap { line -> Question? in
                 let parts = line.components(separatedBy: ";")
                 guard parts.count >= 5 else { return nil }
 
@@ -206,9 +200,10 @@ struct QuizView: View {
 
                 return Question(text: text, choices: choices, correctAnswer: correctAnswer, imageName: imageName)
             }
+
+            self.questions = Array(loadedQuestions.prefix(totalQuestions))
         } catch {
-            print("Error reading file: \(error)")
-            return []
+            print("⚠️ Failed to read questions: \(error.localizedDescription)")
         }
     }
 }
