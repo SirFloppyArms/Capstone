@@ -1,7 +1,7 @@
 Cyclists are expected to:; Ride respectfully; Use hand signals to communicate their actions; Dismount on sidewalks; All of the above; All of the above;
 Traffic signs, signals, and pavement markings must:; Always be obeyed; Be used as a guide only; Be followed only when there is other traffic; Be followed only when a police officer is present; Always be obeyed;
 This sign means:; Merging roadways ahead; Entering two-way roadway; Slow down; Turn right; Merging roadways ahead;merging_roads_ahead
-Under-inflated tires increase fuel consumption A single tire under-inflated by 56 kpa (8 psi) can increase fuel consumption by?; 25 per cent; 15 per cent; Seven per cent; Four per cent; Four per cent;
+Under-inflated tires increase fuel consumption. A single tire under-inflated by 56 kpa (8 psi) can increase fuel consumption by?; 25 per cent; 15 per cent; Seven per cent; Four per cent; Four per cent;
 This sign means:; Leaving city limits; Slippery when wet; Pavement ends; Municipal road begins; Pavement ends;pavement_ends
 This sign means:; Icy road; Bridge ices; Slippery when wet; Check brakes; Bridge ices;bridge_ices
 This sign means:; Bridge ahead; Low structure clearance ahead; Narrow road; Narrow bridge; Low structure clearance ahead;low_structure_clearance_ahead
