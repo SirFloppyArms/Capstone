@@ -56,6 +56,7 @@ struct TimeTrialQuizView: View {
                 .foregroundColor(score >= 7 ? .green : .red)
 
             Button("Return") {
+                saveScore()
                 onComplete?()
                 dismiss()
             }
@@ -205,5 +206,11 @@ struct TimeTrialQuizView: View {
         } catch {
             print("⚠️ Failed to read questions: \(error.localizedDescription)")
         }
+    }
+    
+    private func saveScore() {
+        var scores = UserDefaults.standard.dictionary(forKey: "timeTrialScores") as? [String: Int] ?? [:]
+        scores["timeTrialStage\(stage)"] = score
+        UserDefaults.standard.set(scores, forKey: "timeTrialScores")
     }
 }
