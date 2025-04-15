@@ -5,9 +5,9 @@ A distracted driver:; Daydreams or gazes at objects off the roadway; Carries on 
 This sign means:; Crossroad ahead; Hidden intersection ahead; Gravel road ahead; Right or left turn ahead; Hidden intersection ahead;hidden_intersection_ahead
 When stopping at a railway crossing in a restricted speed area, how far away from the nearest track should you stop?; 2 metres; 5 metres; 10 metres; 15 metres; 5 metres;
 When you are driving out of a back lane, driveway or parking lot, you must:; Stop only if there is a stop sign; Stop before crossing the sidewalk and yield the right-of-way to pedestrians and vehicles; Stop only if traffic is approaching; Drive out slowly so as not to hold up traffic behind you; Stop before crossing the sidewalk and yield the right-of-way to pedestrians and vehicles;
-This sign means:; Slow traffic keep right; Entering a municipality; Prepare to change lanes; Keep right of this sign; Keep right of this sign;keep_right_of_sign
-This sign means:; Pedestrian crosswalk ahead; Children at play; Playground area ahead; School crosswalk ahead; School crosswalk ahead;school_crosswalk_ahead
 This sign means:; Median ahead; Entering a town, city, or village; Divided highway begins ahead; Road ends ahead; Divided highway begins ahead;divided_highway_begins_ahead
+All motor vehicles must have a horn that can be heard for at least:; 30 metres; 90 metres; 60 metres; 15 metres; 60 metres;
+What should you do if a vehicle is following you too closely?; Press hard on the brake; Speed up; Gradually slow down; Put your signals on; Gradually slow down;
 This sign means:; Municipal road ends; Road ends, exit right or left; Roads meet; Overpass ahead; Road ends, exit right or left;road_ends
 What should you do if you approach a school bus with flashing red lights on an undivided highway?; Never pass; Stop at least 5 metres from the bus (regardless of your direction) and remain stopped until the lights stop flashing; Slow down; Both A and B; Both A and B;
 If you are driving a vehicle without ABS (antilock) brakes on a slippery road, how should you apply the brakes?; Keep your foot off brake and coast to a stop; Apply steady pressure without locking up the wheels; Brake hard and try to prevent the vehicle from going into a skid; Pump the brakes forcefully; Pump the brakes forcefully;
