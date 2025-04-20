@@ -209,8 +209,12 @@ struct TimeTrialQuizView: View {
     }
     
     private func saveScore() {
-        var scores = UserDefaults.standard.dictionary(forKey: "timeTrialScores") as? [String: Int] ?? [:]
-        scores["timeTrialStage\(stage)"] = score
-        UserDefaults.standard.set(scores, forKey: "timeTrialScores")
+        UserDataManager.shared.saveTimeTrialScore(stage: stage, score: score) { error in
+            if let error = error {
+                print("⚠️ Failed to save score: \(error.localizedDescription)")
+            } else {
+                print("✅ Score saved to Firestore")
+            }
+        }
     }
 }

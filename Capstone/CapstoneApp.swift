@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct CapstoneApp: App {
+    
+    // Initialize Firebase when the app launches
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AuthView() // Start with the auth view
         }
     }
 }

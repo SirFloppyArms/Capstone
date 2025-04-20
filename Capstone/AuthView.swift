@@ -1,0 +1,93 @@
+import SwiftUI
+import Firebase
+import FirebaseAuth
+import FirebaseFirestore
+
+struct AuthView: View {
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isSignUp = false
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Text(isSignUp ? "Sign Up" : "Sign In")
+                    .font(.largeTitle.bold())
+
+                TextField("Email", text: $email)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+
+                SecureField("Password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                if let error = errorMessage {
+                    Text(error)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button(action: handleAuth) {
+                    Text(isSignUp ? "Create Account" : "Log In")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+
+                Button(action: { isSignUp.toggle() }) {
+                    Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+        }
+    }
+
+    func handleAuth() {
+        errorMessage = nil
+
+        if isSignUp {
+            Auth.auth().createUser(withEmail: email, password: password) { result, error in
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+
+                guard let uid = result?.user.uid else { return }
+                createUserProfile(uid: uid)
+            }
+        } else {
+            Auth.auth().signIn(withEmail: email, password: password) { result, error in
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    return
+                }
+
+                // Successfully signed in, go to main view
+                navigateToMain()
+            }
+        }
+    }
+
+    func createUserProfile(uid: String) {
+        let db = Firestore.firestore()
+        var data: [String: Int] = [:]
+
+        db.collection("users").document(uid).setData(data) { error in
+            if let error = error {
+                self.errorMessage = "Failed to create profile: \(error.localizedDescription)"
+            } else {
+                navigateToMain()
+            }
+        }
+    }
+
+    func navigateToMain() {
+        // Replace with navigation logic to go to ContentView
+        UIApplication.shared.windows.first?.rootViewController = UIHostingController(rootView: ContentView())
+    }
+}

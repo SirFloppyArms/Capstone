@@ -77,7 +77,11 @@ struct QuizView: View {
                 saveScore()
                 if score >= 18 {
                     unlockedStages = max(unlockedStages, stage + 1)
-                    UserDefaults.standard.set(unlockedStages, forKey: "unlockedStages")
+                    UserDataManager.shared.updateUnlockedStages(to: unlockedStages) { error in
+                        if let error = error {
+                            print("⚠️ Failed to update unlockedStages: \(error.localizedDescription)")
+                        }
+                    }
                 }
                 onQuizComplete?()
                 dismiss()
@@ -179,9 +183,13 @@ struct QuizView: View {
     }
 
     private func saveScore() {
-        var allScores = UserDefaults.standard.dictionary(forKey: "stageScores") as? [String: Int] ?? [:]
-        allScores["stage\(stage)"] = score
-        UserDefaults.standard.set(allScores, forKey: "stageScores")
+        UserDataManager.shared.saveRoadmapScore(stage: stage, score: score) { error in
+            if let error = error {
+                print("⚠️ Failed to save score: \(error.localizedDescription)")
+            } else {
+                print("✅ Score saved to Firestore")
+            }
+        }
     }
 
     // MARK: - Loader

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TimeTrialsView: View {
-    @State private var timeTrialScores: [String: Int] = UserDefaults.standard.dictionary(forKey: "timeTrialScores") as? [String: Int] ?? [:]
+    @State private var timeTrialScores: [String: Int] = [:]
     let totalStages = 30
 
     var body: some View {
@@ -13,9 +13,9 @@ struct TimeTrialsView: View {
                     .padding(.top)
 
                 ForEach(1...totalStages, id: \.self) { stage in
-                    let score = timeTrialScores["timeTrialStage\(stage)"]
-                    let previousScore = stage == 1 ? 10 : (timeTrialScores["timeTrialStage\(stage - 1)"] ?? 0)
-                    let isUnlocked = stage == 1 || previousScore >= 9
+                    let score = timeTrialScores["TimeTrialStage\(stage)"]
+                    let previousScore = timeTrialScores["TimeTrialStage\(stage - 1)"]
+                    let isUnlocked = stage == 1 || (previousScore != nil && previousScore! >= 9)
 
                     let backgroundColor: Color = {
                         if let score = score {
@@ -62,6 +62,14 @@ struct TimeTrialsView: View {
     }
 
     private func loadScores() {
-        timeTrialScores = UserDefaults.standard.dictionary(forKey: "timeTrialScores") as? [String: Int] ?? [:]
+        UserDataManager.shared.fetchTimeTrialScores { scores, error in
+            if let error = error {
+                print("⚠️ Failed to load scores: \(error.localizedDescription)")
+            } else {
+                DispatchQueue.main.async {
+                    self.timeTrialScores = scores ?? [:]
+                }
+            }
+        }
     }
 }

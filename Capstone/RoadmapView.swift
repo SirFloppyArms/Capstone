@@ -6,12 +6,10 @@ struct QuizStage: Identifiable {
 }
 
 struct RoadmapView: View {
+    @State private var roadmapScores: [String: Int] = [:]
     let totalStages = 10
 
-    // Store the highest unlocked stage from UserDefaults or default to 1
-    @State private var unlockedStages: Int = UserDefaults.standard.integer(forKey: "unlockedStages") > 0
-        ? UserDefaults.standard.integer(forKey: "unlockedStages")
-        : 1
+    @State private var unlockedStages: Int = 1
 
     @State private var quizStage: QuizStage? = nil
     @State private var refreshTrigger = UUID() // Forces the view to reload
@@ -55,6 +53,25 @@ struct RoadmapView: View {
                     }
                     .frame(width: CGFloat(pathPoints.count) * segmentSpacing + horizontalOffset, height: geo.size.height)
                 }
+                .onAppear {
+                    // Fetch scores from Firestore
+                    UserDataManager.shared.fetchRoadmapScores { scores, error in
+                        if let scores = scores {
+                            roadmapScores = scores
+                        } else if let error = error {
+                            print("⚠️ Error fetching scores: \(error.localizedDescription)")
+                        }
+                    }
+
+                    // Fetch unlocked stages from Firestore
+                    UserDataManager.shared.fetchUnlockedStages { stage, error in
+                        if let stage = stage {
+                            unlockedStages = stage
+                        } else if let error = error {
+                            print("⚠️ Error fetching unlockedStages: \(error.localizedDescription)")
+                        }
+                    }
+                }
                 .id(refreshTrigger)
             }
             .navigationTitle("🚗 Roadmap")
@@ -72,10 +89,8 @@ struct RoadmapView: View {
         }
     }
 
-    // Pulls score from UserDefaults
     func getScore(for stage: Int) -> Int? {
-        let allScores = UserDefaults.standard.dictionary(forKey: "stageScores") as? [String: Int] ?? [:]
-        return allScores["stage\(stage)"]
+        return roadmapScores["RoadmapStage\(stage)"]
     }
 
     func isStageUnlocked(_ stage: Int) -> Bool {
