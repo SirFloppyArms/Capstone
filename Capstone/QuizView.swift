@@ -11,7 +11,6 @@ struct Question: Identifiable {
 struct QuizView: View {
     let stage: Int
     let totalQuestions: Int
-    @Binding var unlockedStages: Int
     var onQuizComplete: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
@@ -23,12 +22,10 @@ struct QuizView: View {
     @State private var score = 0
     @State private var sessionComplete = false
 
-    init(stage: Int, totalQuestions: Int, unlockedStages: Binding<Int>, onQuizComplete: (() -> Void)? = nil) {
+    init(stage: Int, totalQuestions: Int, onQuizComplete: (() -> Void)? = nil) {
         self.stage = stage
         self.totalQuestions = totalQuestions
-        self._unlockedStages = unlockedStages
         self.onQuizComplete = onQuizComplete
-
         let loaded = QuizView.loadQuestions(for: stage).shuffled()
         self._questions = State(initialValue: Array(loaded.prefix(totalQuestions)))
     }
@@ -76,15 +73,17 @@ struct QuizView: View {
             Button("Return to Roadmap") {
                 saveScore()
                 if score >= 18 {
-                    unlockedStages = max(unlockedStages, stage + 1)
-                    UserDataManager.shared.updateUnlockedStages(to: unlockedStages) { error in
+                    UserDataManager.shared.updateUnlockedStages(to: stage + 1) { error in
                         if let error = error {
                             print("⚠️ Failed to update unlockedStages: \(error.localizedDescription)")
                         }
+                        onQuizComplete?()
+                        dismiss()
                     }
+                } else {
+                    onQuizComplete?()
+                    dismiss()
                 }
-                onQuizComplete?()
-                dismiss()
             }
             .padding()
             .background(Color.orange)

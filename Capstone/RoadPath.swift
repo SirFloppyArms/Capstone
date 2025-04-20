@@ -34,16 +34,16 @@ struct RoadPath: View {
     }
 
     static func generatePathPoints(
-        segments: Int = 1000,
-        spacing: CGFloat = 20,
-        amplitude: CGFloat = 75,
+        segments: Int = 150,
+        spacing: CGFloat = 26,
+        amplitude: CGFloat = 100,
         seed: CGFloat = 42,
-        height: CGFloat = 250
+        height: CGFloat = 300
     ) -> [CGPoint] {
         let midY = height / 2
         return (0...segments).map { i in
             let x = CGFloat(i) * spacing
-            let y = midY + noise(x: CGFloat(i) * 0.5 + seed) * amplitude
+            let y = midY + noise(x: CGFloat(i) * 0.3 + seed) * amplitude
             return CGPoint(x: x, y: y)
         }
     }

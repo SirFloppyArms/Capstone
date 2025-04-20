@@ -1,26 +1,24 @@
 import SwiftUI
 
-// This struct enables .sheet(item:) to work properly
 struct QuizStage: Identifiable {
     let id: Int
 }
 
 struct RoadmapView: View {
     @State private var roadmapScores: [String: Int] = [:]
-    let totalStages = 10
-
-    @State private var unlockedStages: Int = 1
-
+    @State private var unlockedStages = 1
     @State private var quizStage: QuizStage? = nil
-    @State private var refreshTrigger = UUID() // Forces the view to reload
+    @State private var refreshTrigger = UUID()
+
+    let totalStages = 15
 
     var body: some View {
         NavigationView {
             GeometryReader { geo in
-                let segmentSpacing: CGFloat = 20
-                let horizontalOffset: CGFloat = 60
                 let pathPoints = RoadPath.generatePathPoints(segments: 150, height: geo.size.height * 0.7)
                 let nodeIndexes = stride(from: 0, to: pathPoints.count, by: pathPoints.count / totalStages).map { $0 }
+                let offsetX: CGFloat = 60
+                let contentWidth = (pathPoints.last?.x ?? 0) + offsetX + 100 // Add extra padding
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     ZStack {
@@ -31,69 +29,61 @@ struct RoadmapView: View {
                         )
                         .ignoresSafeArea()
 
-                        RoadPath(points: pathPoints.map { CGPoint(x: $0.x + horizontalOffset, y: $0.y) })
-                            .frame(width: CGFloat(pathPoints.count) * segmentSpacing + horizontalOffset, height: geo.size.height)
+                        RoadPath(points: pathPoints.map { CGPoint(x: $0.x + offsetX, y: $0.y) })
+                            .frame(width: contentWidth, height: geo.size.height)
 
                         ForEach(0..<totalStages, id: \.self) { index in
                             let stage = index + 1
-                            let pointIndex = nodeIndexes[index]
-                            let point = pathPoints[pointIndex]
-                            let shiftedPoint = CGPoint(x: point.x + horizontalOffset, y: point.y)
+                            let point = CGPoint(
+                                x: pathPoints[nodeIndexes[index]].x + offsetX,
+                                y: pathPoints[nodeIndexes[index]].y
+                            )
 
                             RoadmapStageNode(
                                 stage: stage,
-                                score: getScore(for: stage),
-                                unlocked: isStageUnlocked(stage),
-                                onTap: {
-                                    quizStage = QuizStage(id: stage)
-                                }
-                            )
-                            .position(x: shiftedPoint.x, y: shiftedPoint.y)
+                                score: roadmapScores["RoadmapStage\(stage)"],
+                                unlocked: stage <= unlockedStages
+                            ) {
+                                quizStage = QuizStage(id: stage)
+                            }
+                            .position(point)
                         }
                     }
-                    .frame(width: CGFloat(pathPoints.count) * segmentSpacing + horizontalOffset, height: geo.size.height)
+                    .frame(width: contentWidth, height: geo.size.height)
                 }
-                .onAppear {
-                    // Fetch scores from Firestore
-                    UserDataManager.shared.fetchRoadmapScores { scores, error in
-                        if let scores = scores {
-                            roadmapScores = scores
-                        } else if let error = error {
-                            print("⚠️ Error fetching scores: \(error.localizedDescription)")
-                        }
-                    }
-
-                    // Fetch unlocked stages from Firestore
-                    UserDataManager.shared.fetchUnlockedStages { stage, error in
-                        if let stage = stage {
-                            unlockedStages = stage
-                        } else if let error = error {
-                            print("⚠️ Error fetching unlockedStages: \(error.localizedDescription)")
-                        }
-                    }
-                }
+                .onAppear(perform: loadData)
                 .id(refreshTrigger)
             }
             .navigationTitle("🚗 Roadmap")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $quizStage, onDismiss: {
-                unlockedStages = UserDefaults.standard.integer(forKey: "unlockedStages")
-                refreshTrigger = UUID()
+                loadData() // centralize reload logic here
             }) { stage in
                 QuizView(
                     stage: stage.id,
-                    totalQuestions: 20,
-                    unlockedStages: $unlockedStages
-                )
+                    totalQuestions: 20
+                ) {
+                    loadData() // called when quiz finishes
+                }
             }
         }
     }
 
-    func getScore(for stage: Int) -> Int? {
-        return roadmapScores["RoadmapStage\(stage)"]
-    }
+    private func loadData() {
+        UserDataManager.shared.fetchRoadmapScores { scores, error in
+            if let scores = scores {
+                roadmapScores = scores
+            } else if let error = error {
+                print("⚠️ Failed to load scores: \(error.localizedDescription)")
+            }
+        }
 
-    func isStageUnlocked(_ stage: Int) -> Bool {
-        return stage <= unlockedStages
+        UserDataManager.shared.fetchUnlockedStages { stage, error in
+            if let stage = stage {
+                unlockedStages = stage
+            } else if let error = error {
+                print("⚠️ Failed to load unlocked stages: \(error.localizedDescription)")
+            }
+        }
     }
 }
