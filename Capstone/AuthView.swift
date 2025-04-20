@@ -4,7 +4,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct AuthView: View {
-    @State private var email = ""
+    @State private var username = ""
     @State private var password = ""
     @State private var isSignUp = false
     @State private var errorMessage: String?
@@ -15,9 +15,8 @@ struct AuthView: View {
                 Text(isSignUp ? "Sign Up" : "Sign In")
                     .font(.largeTitle.bold())
 
-                TextField("Email", text: $email)
+                TextField("Username", text: $username)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.emailAddress)
                     .autocapitalization(.none)
 
                 SecureField("Password", text: $password)
@@ -50,8 +49,10 @@ struct AuthView: View {
     func handleAuth() {
         errorMessage = nil
 
+        let fakeEmail = "\(username.lowercased())@app.com"
+
         if isSignUp {
-            Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            Auth.auth().createUser(withEmail: fakeEmail, password: password) { result, error in
                 if let error = error {
                     self.errorMessage = error.localizedDescription
                     return
@@ -61,13 +62,12 @@ struct AuthView: View {
                 createUserProfile(uid: uid)
             }
         } else {
-            Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            Auth.auth().signIn(withEmail: fakeEmail, password: password) { result, error in
                 if let error = error {
                     self.errorMessage = error.localizedDescription
                     return
                 }
 
-                // Successfully signed in, go to main view
                 navigateToMain()
             }
         }
@@ -75,9 +75,11 @@ struct AuthView: View {
 
     func createUserProfile(uid: String) {
         let db = Firestore.firestore()
-        var data: [String: Int] = [:]
+        let userData: [String: Any] = [
+            "username": username
+        ]
 
-        db.collection("users").document(uid).setData(data) { error in
+        db.collection("users").document(uid).setData(userData, merge: true) { error in
             if let error = error {
                 self.errorMessage = "Failed to create profile: \(error.localizedDescription)"
             } else {
@@ -87,7 +89,6 @@ struct AuthView: View {
     }
 
     func navigateToMain() {
-        // Replace with navigation logic to go to ContentView
         UIApplication.shared.windows.first?.rootViewController = UIHostingController(rootView: ContentView())
     }
 }
