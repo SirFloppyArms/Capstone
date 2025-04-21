@@ -7,6 +7,7 @@ struct AuthView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var isSignUp = false
+    @State private var staySignedIn = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -21,6 +22,9 @@ struct AuthView: View {
 
                 SecureField("Password", text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                Toggle("Stay Signed In", isOn: $staySignedIn)
+                    .padding(.horizontal)
 
                 if let error = errorMessage {
                     Text(error)
@@ -43,12 +47,21 @@ struct AuthView: View {
                 }
             }
             .padding()
+            .onAppear {
+                autoLoginIfEligible()
+            }
+        }
+    }
+
+    func autoLoginIfEligible() {
+        let staySignedInPref = UserDefaults.standard.bool(forKey: "staySignedIn")
+        if let user = Auth.auth().currentUser, staySignedInPref {
+            navigateToMain()
         }
     }
 
     func handleAuth() {
         errorMessage = nil
-
         let fakeEmail = "\(username.lowercased())@app.com"
 
         if isSignUp {
@@ -68,6 +81,7 @@ struct AuthView: View {
                     return
                 }
 
+                UserDefaults.standard.set(staySignedIn, forKey: "staySignedIn")
                 navigateToMain()
             }
         }
@@ -83,6 +97,7 @@ struct AuthView: View {
             if let error = error {
                 self.errorMessage = "Failed to create profile: \(error.localizedDescription)"
             } else {
+                UserDefaults.standard.set(staySignedIn, forKey: "staySignedIn")
                 navigateToMain()
             }
         }

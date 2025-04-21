@@ -104,8 +104,22 @@ struct LeaderboardView: View {
 
     func fetchTopUsers() {
         let db = Firestore.firestore()
-        db.collection("users").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents else { return }
+
+        // 1. Load from cache instantly
+        db.collection("users").getDocuments(source: .cache) { snapshot, error in
+            if let documents = snapshot?.documents {
+                updateLeaderboard(from: documents)
+            }
+
+            // 2. Try refreshing from server if online
+            db.collection("users").getDocuments(source: .server) { snapshot, error in
+                if let documents = snapshot?.documents {
+                    updateLeaderboard(from: documents)
+                }
+            }
+        }
+
+        func updateLeaderboard(from documents: [QueryDocumentSnapshot]) {
             var leaderboard: [(String, Int)] = []
 
             for doc in documents {

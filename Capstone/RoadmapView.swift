@@ -5,8 +5,7 @@ struct QuizStage: Identifiable {
 }
 
 struct RoadmapView: View {
-    @State private var roadmapScores: [String: Int] = [:]
-    @State private var unlockedStages = 1
+    @ObservedObject private var dataManager = UserDataManager.shared
     @State private var quizStage: QuizStage? = nil
     @State private var refreshTrigger = UUID()
 
@@ -18,7 +17,7 @@ struct RoadmapView: View {
                 let pathPoints = RoadPath.generatePathPoints(segments: 150, height: geo.size.height * 0.7)
                 let nodeIndexes = stride(from: 0, to: pathPoints.count, by: pathPoints.count / totalStages).map { $0 }
                 let offsetX: CGFloat = 60
-                let contentWidth = (pathPoints.last?.x ?? 0) + offsetX + 100 // Add extra padding
+                let contentWidth = (pathPoints.last?.x ?? 0) + offsetX + 100
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     ZStack {
@@ -41,8 +40,8 @@ struct RoadmapView: View {
 
                             RoadmapStageNode(
                                 stage: stage,
-                                score: roadmapScores["RoadmapStage\(stage)"],
-                                unlocked: stage <= unlockedStages
+                                score: dataManager.roadmapScores["RoadmapStage\(stage)"],
+                                unlocked: stage <= dataManager.unlockedStage
                             ) {
                                 quizStage = QuizStage(id: stage)
                             }
@@ -51,38 +50,21 @@ struct RoadmapView: View {
                     }
                     .frame(width: contentWidth, height: geo.size.height)
                 }
-                .onAppear(perform: loadData)
                 .id(refreshTrigger)
             }
             .navigationTitle("🚗 Roadmap")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $quizStage, onDismiss: {
-                loadData() // centralize reload logic here
+                dataManager.loadUserData() // refresh all from shared source
+                refreshTrigger = UUID()    // force redraw
             }) { stage in
                 QuizView(
                     stage: stage.id,
                     totalQuestions: 20
                 ) {
-                    loadData() // called when quiz finishes
+                    dataManager.loadUserData()
+                    refreshTrigger = UUID()
                 }
-            }
-        }
-    }
-
-    private func loadData() {
-        UserDataManager.shared.fetchRoadmapScores { scores, error in
-            if let scores = scores {
-                roadmapScores = scores
-            } else if let error = error {
-                print("⚠️ Failed to load scores: \(error.localizedDescription)")
-            }
-        }
-
-        UserDataManager.shared.fetchUnlockedStages { stage, error in
-            if let stage = stage {
-                unlockedStages = stage
-            } else if let error = error {
-                print("⚠️ Failed to load unlocked stages: \(error.localizedDescription)")
             }
         }
     }
