@@ -19,6 +19,7 @@ struct LeaderboardView: View {
                     .font(.largeTitle.bold())
                     .padding(.top)
 
+                // Your Stats Section
                 VStack(spacing: 16) {
                     Text("Your Stats")
                         .font(.headline)
@@ -29,11 +30,12 @@ struct LeaderboardView: View {
                     StatRow(label: "🏁 Total Score", score: totalScore, total: 600, percent: totalPercent)
                 }
                 .padding()
-                .background(Color.white.opacity(0.9))
+                .background(.regularMaterial)
                 .cornerRadius(15)
-                .shadow(radius: 8)
+                .shadow(radius: 4)
                 .padding(.horizontal)
 
+                // Global Leaderboard Section
                 VStack(alignment: .leading, spacing: 10) {
                     Text("🌍 Top 10 Global Leaderboard")
                         .font(.headline)
@@ -48,9 +50,11 @@ struct LeaderboardView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(user.username)
                                     .font(.headline)
+                                    .foregroundColor(.primary)
+
                                 Text(rankForScore(user.score))
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
 
                             Spacer()
@@ -60,25 +64,27 @@ struct LeaderboardView: View {
                             Text("\(user.score)")
                                 .font(.headline)
                                 .monospacedDigit()
+                                .foregroundColor(.primary)
                         }
                         .padding(.vertical, 6)
                     }
                 }
                 .padding()
-                .background(Color.white.opacity(0.9))
+                .background(.regularMaterial)
                 .cornerRadius(15)
-                .shadow(radius: 8)
+                .shadow(radius: 4)
                 .padding(.horizontal)
 
                 Spacer()
             }
         }
+        .background(Color(.systemBackground))
         .onAppear {
             loadUserScores()
             fetchTopUsers()
         }
     }
-
+    
     func loadUserScores() {
         let group = DispatchGroup()
 
@@ -153,7 +159,7 @@ struct StatRow: View {
                 .progressViewStyle(LinearProgressViewStyle(tint: .blue))
             Text("\(String(format: "%.2f", percent))% complete")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
         }
     }
 }
@@ -166,7 +172,7 @@ struct ScoreRingView: View {
         let percent = Double(score) / Double(maxScore)
         return ZStack {
             Circle()
-                .stroke(Color.gray.opacity(0.3), lineWidth: 6)
+                .stroke(Color.secondary.opacity(0.2), lineWidth: 6)
                 .frame(width: 40, height: 40)
             Circle()
                 .trim(from: 0, to: percent)
@@ -183,6 +189,7 @@ struct ScoreRingView: View {
             Text("\(Int(percent * 100))%")
                 .font(.caption2)
                 .bold()
+                .foregroundColor(.primary)
         }
     }
 }
