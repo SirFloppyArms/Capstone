@@ -16,13 +16,14 @@ struct LeaderboardView: View {
         ScrollView {
             VStack(spacing: 25) {
                 Text("📊 Leaderboard")
-                    .font(.largeTitle.bold())
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .padding(.top)
 
                 // Your Stats Section
                 VStack(spacing: 16) {
                     Text("Your Stats")
-                        .font(.headline)
+                        .font(.title2.weight(.semibold))
+                        .padding(.bottom, 4)
 
                     StatRow(label: "📍 Roadmap Score", score: roadmapScore, total: 300, percent: roadmapPercent)
                     StatRow(label: "⏱ Time Trials Score", score: timeTrialScore, total: 300, percent: timeTrialPercent)
@@ -30,61 +31,69 @@ struct LeaderboardView: View {
                     StatRow(label: "🏁 Total Score", score: totalScore, total: 600, percent: totalPercent)
                 }
                 .padding()
-                .background(.regularMaterial)
-                .cornerRadius(15)
-                .shadow(radius: 4)
+                .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
                 .padding(.horizontal)
 
                 // Global Leaderboard Section
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("🌍 Top 10 Global Leaderboard")
-                        .font(.headline)
+                        .font(.title3.weight(.semibold))
+                        .padding(.bottom, 4)
 
                     ForEach(Array(topUsers.prefix(10).enumerated()), id: \.offset) { index, user in
                         HStack(spacing: 15) {
-                            Text("#\(index + 1)")
-                                .font(.subheadline)
-                                .bold()
-                                .frame(width: 30)
+                            // Rank + Medal
+                            Text(rankLabel(for: index))
+                                .font(.subheadline.bold())
+                                .frame(alignment: .leading)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(user.username)
                                     .font(.headline)
                                     .foregroundColor(.primary)
-
-                                Text(rankForScore(user.score))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
                             }
 
                             Spacer()
-
-                            ScoreRingView(score: user.score)
-
+                            
+                            // Score value
                             Text("\(user.score)")
-                                .font(.headline)
-                                .monospacedDigit()
+                                .font(.headline.monospacedDigit())
                                 .foregroundColor(.primary)
+
+                            // Score ring
+                            ScoreRingView(score: user.score)
                         }
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color(.systemGray6).opacity(0.5))
+                        .cornerRadius(12)
                     }
                 }
                 .padding()
-                .background(.regularMaterial)
-                .cornerRadius(15)
-                .shadow(radius: 4)
+                .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
                 .padding(.horizontal)
 
                 Spacer()
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color(.systemGroupedBackground))
         .onAppear {
             loadUserScores()
             fetchTopUsers()
         }
     }
-    
+
+    func rankLabel(for index: Int) -> String {
+        switch index {
+        case 0: return "🥇"
+        case 1: return "🥈"
+        case 2: return "🥉"
+        default: return "#\(index + 1)"
+        }
+    }
+
     func loadUserScores() {
         let group = DispatchGroup()
 
@@ -111,13 +120,13 @@ struct LeaderboardView: View {
     func fetchTopUsers() {
         let db = Firestore.firestore()
 
-        // 1. Load from cache instantly
+        // Load from cache first
         db.collection("users").getDocuments(source: .cache) { snapshot, error in
             if let documents = snapshot?.documents {
                 updateLeaderboard(from: documents)
             }
 
-            // 2. Try refreshing from server if online
+            // Try refreshing from server
             db.collection("users").getDocuments(source: .server) { snapshot, error in
                 if let documents = snapshot?.documents {
                     updateLeaderboard(from: documents)
@@ -178,7 +187,7 @@ struct ScoreRingView: View {
                 .trim(from: 0, to: percent)
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [.green, .blue, .purple]),
+                        gradient: Gradient(colors: [.blue, .teal, .purple]),
                         center: .center
                     ),
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
@@ -191,18 +200,5 @@ struct ScoreRingView: View {
                 .bold()
                 .foregroundColor(.primary)
         }
-    }
-}
-
-func rankForScore(_ score: Int) -> String {
-    switch score {
-    case 0..<100: return "🥉 Bronze"
-    case 100..<200: return "🥈 Silver"
-    case 200..<300: return "🥇 Gold"
-    case 300..<400: return "🏆 Platinum"
-    case 400..<500: return "💎 Diamond"
-    case 500..<590: return "🔥 Champion"
-    case 590...600: return "🌟 Legendary"
-    default: return "🎖 Unranked"
     }
 }

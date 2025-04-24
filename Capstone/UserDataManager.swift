@@ -85,7 +85,7 @@ class UserDataManager: ObservableObject {
 
         if isOnline {
             db.collection("users").document(uid).setData(data, merge: true) { error in
-                if let error = error {
+                if error != nil {
                     self.savePendingUpdate(data)
                 }
                 completion(error)
