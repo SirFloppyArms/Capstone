@@ -30,7 +30,7 @@ class UserDataManager: ObservableObject {
             self.isOnline = path.status == .satisfied
             if self.isOnline {
                 self.syncPendingUpdates()
-                self.loadUserData() // Re-sync when back online
+                self.loadUserData()
             }
         }
         let queue = DispatchQueue(label: "NetworkMonitor")
