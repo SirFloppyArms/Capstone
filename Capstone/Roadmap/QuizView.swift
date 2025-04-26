@@ -102,15 +102,11 @@ struct QuizView: View {
 
         return VStack(spacing: 16) {
             // Header
-            HStack {
-                Text("Roadmap \(stage) — \(currentQuestionIndex + 1)/\(totalQuestions)")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .padding(.top)
-            .padding(.horizontal)
+            Text("Roadmap \(stage) — \(currentQuestionIndex + 1)/\(totalQuestions)")
+                .font(.headline)
+                .foregroundColor(.primary)
+                .padding(.top)
+                .padding(.horizontal)
 
             // Question text and image section
             VStack(spacing: 16) {

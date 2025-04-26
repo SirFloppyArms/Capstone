@@ -8,7 +8,7 @@ struct RoadmapView: View {
     @ObservedObject private var dataManager = UserDataManager.shared
     @State private var quizStage: QuizStage? = nil
     @State private var refreshTrigger = UUID()
-
+    
     let totalStages = 15
 
     var body: some View {
@@ -21,16 +21,14 @@ struct RoadmapView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     ZStack {
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.cyan.opacity(0.2)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .ignoresSafeArea()
+                        // Gradient background that adapts to light/dark
+                        AdaptiveGradientBackground()
 
+                        // Winding road path
                         RoadPath(points: pathPoints.map { CGPoint(x: $0.x + offsetX, y: $0.y) })
                             .frame(width: contentWidth, height: geo.size.height)
 
+                        // Stage nodes placed along the path
                         ForEach(0..<totalStages, id: \.self) { index in
                             let stage = index + 1
                             let point = CGPoint(
@@ -52,20 +50,34 @@ struct RoadmapView: View {
                 }
                 .id(refreshTrigger)
             }
-            .navigationTitle("🚗 Roadmap")
+            .navigationTitle("Roadmap")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $quizStage, onDismiss: {
-                dataManager.loadUserData() // refresh all from shared source
-                refreshTrigger = UUID()    // force redraw
+                dataManager.loadUserData()
+                refreshTrigger = UUID()
             }) { stage in
-                QuizView(
-                    stage: stage.id,
-                    totalQuestions: 20
-                ) {
+                QuizView(stage: stage.id, totalQuestions: 20) {
                     dataManager.loadUserData()
                     refreshTrigger = UUID()
                 }
             }
         }
+    }
+}
+
+// MARK: - Adaptive Background
+struct AdaptiveGradientBackground: View {
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        LinearGradient(
+            gradient: Gradient(colors: colorScheme == .dark
+                ? [Color(red: 0.1, green: 0.1, blue: 0.2), Color(red: 0.2, green: 0.3, blue: 0.3)]
+                : [Color.blue.opacity(0.2), Color.white.opacity(0.2)]
+            ),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
     }
 }
