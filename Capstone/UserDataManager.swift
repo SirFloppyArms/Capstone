@@ -6,11 +6,14 @@ import Network
 
 class UserDataManager: ObservableObject {
     static let shared = UserDataManager()
-    
+
     @Published var roadmapScores: [String: Int] = [:]
     @Published var timeTrialScores: [String: Int] = [:]
     @Published var unlockedStage: Int = 0
-    
+    @Published var dailyModePoints: Int = 0
+    @Published var lastDailyAnswerDate: String? = nil
+    @Published var freestyleScore: Int = 0
+
     private let db = Firestore.firestore()
     private let pendingUpdatesKey = "PendingUpdates"
     private var isOnline = false
@@ -80,6 +83,19 @@ class UserDataManager: ObservableObject {
     func updateUnlockedStages(to stage: Int, completion: @escaping (Error?) -> Void) {
         save(field: "unlockedStages", value: stage, completion: completion)
     }
+    
+    func saveFreestyleScore(pointsToAdd: Int, completion: @escaping (Error?) -> Void) {
+        let newScore = freestyleScore + pointsToAdd
+        save(field: "freestyleScore", value: newScore) { error in
+            if error == nil {
+                DispatchQueue.main.async {
+                    self.freestyleScore = newScore
+                    UserDefaults.standard.set(newScore, forKey: "freestyleScore")
+                }
+            }
+            completion(error)
+        }
+    }
 
     private func save(field: String, value: Any, completion: @escaping (Error?) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -98,12 +114,46 @@ class UserDataManager: ObservableObject {
             }
         } else {
             savePendingUpdate(update)
-            self.updateLocalCache(with: update) // ✅ NEW: update @Published values from local change
+            self.updateLocalCache(with: update) // ✅
             completion(nil)
         }
     }
+    
+    func saveDailyModeAnswer(correct: Bool, completion: @escaping (Error?) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion(NSError(domain: "UserNotLoggedIn", code: 401))
+            return
+        }
+        
+        let today = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
+        
+        var update: [String: Any] = [
+            "lastDailyAnswerDate": today
+        ]
+        
+        if correct {
+            update["DailyModePoints"] = (self.dailyModePoints + 2)
+        }
+        
+        if isOnline {
+            db.collection("users").document(uid).setData(update, merge: true) { error in
+                if error == nil {
+                    DispatchQueue.main.async {
+                        self.lastDailyAnswerDate = today
+                        if correct {
+                            self.dailyModePoints += 2
+                        }
+                    }
+                }
+                completion(error)
+            }
+        } else {
+            savePendingUpdate(update)
+            completion(NSError(domain: "Offline", code: -1009, userInfo: [NSLocalizedDescriptionKey: "You must be online to answer the Daily Question."]))
+        }
+    }
 
-    // MARK: - Public Fetch Methods
+    // MARK: - Fetch Methods
 
     func fetchTimeTrialScores(completion: @escaping ([String: Int]?, Error?) -> Void) {
         fetchScores(prefix: "TimeTrialStage", completion: completion)
@@ -112,6 +162,51 @@ class UserDataManager: ObservableObject {
     func fetchRoadmapScores(completion: @escaping ([String: Int]?, Error?) -> Void) {
         fetchScores(prefix: "RoadmapStage", completion: completion)
     }
+        
+    func fetchFreestyleScore(completion: @escaping (Int) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion(0)
+            return
+        }
+
+        let docRef = db.collection("users").document(uid)
+
+        docRef.getDocument(source: .cache) { snapshot, _ in
+            if let data = snapshot?.data(), let score = data["freestyleScore"] as? Int {
+                completion(score)
+            } else {
+                docRef.getDocument(source: .server) { snapshot, _ in
+                    if let data = snapshot?.data(), let score = data["freestyleScore"] as? Int {
+                        completion(score)
+                    } else {
+                        completion(0)
+                    }
+                }
+            }
+        }
+    }
+    
+    func fetchDailyQuestionScore(completion: @escaping (Int?, Error?) -> Void) {
+            guard let userId = Auth.auth().currentUser?.uid else {
+                completion(nil, NSError(domain: "UserNotLoggedIn", code: 401, userInfo: nil))
+                return
+            }
+
+            let db = Firestore.firestore()
+            let docRef = db.collection("users").document(userId)
+
+            docRef.getDocument { document, error in
+                if let error = error {
+                    completion(nil, error)
+                } else if let document = document, document.exists {
+                    let data = document.data()
+                    let dailyScore = data?["dailyScore"] as? Int ?? 0
+                    completion(dailyScore, nil)
+                } else {
+                    completion(0, nil)
+                }
+            }
+        }
 
     private func fetchScores(prefix: String, completion: @escaping ([String: Int]?, Error?) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -192,17 +287,26 @@ class UserDataManager: ObservableObject {
                 .compactMapValues { $0 as? Int }
 
             let unlocked = data["unlockedStages"] as? Int ?? 0
+            let dailyPoints = data["DailyModePoints"] as? Int ?? 0
+            let lastAnswer = data["lastDailyAnswerDate"] as? String
+            let freestyle = data["freestyleScore"] as? Int ?? 0
 
             DispatchQueue.main.async {
                 self.roadmapScores = roadmap
                 self.timeTrialScores = timeTrials
                 self.unlockedStage = unlocked
+                self.dailyModePoints = dailyPoints
+                self.lastDailyAnswerDate = lastAnswer
+                self.freestyleScore = freestyle
             }
 
-            // Save to UserDefaults for offline fallback
+            // Save for offline fallback
             UserDefaults.standard.set(roadmap, forKey: "roadmapScores")
             UserDefaults.standard.set(timeTrials, forKey: "timeTrialScores")
             UserDefaults.standard.set(unlocked, forKey: "unlockedStage")
+            UserDefaults.standard.set(dailyPoints, forKey: "dailyModePoints")
+            UserDefaults.standard.set(lastAnswer, forKey: "lastDailyAnswerDate")
+            UserDefaults.standard.set(freestyle, forKey: "freestyleScore")
         }
     }
 
@@ -214,6 +318,9 @@ class UserDataManager: ObservableObject {
             timeTrialScores = timeTrials
         }
         unlockedStage = UserDefaults.standard.integer(forKey: "unlockedStage")
+        dailyModePoints = UserDefaults.standard.integer(forKey: "dailyModePoints")
+        lastDailyAnswerDate = UserDefaults.standard.string(forKey: "lastDailyAnswerDate")
+        freestyleScore = UserDefaults.standard.integer(forKey: "freestyleScore")
     }
     
     private func updateLocalCache(with update: [String: Any]) {
@@ -221,6 +328,7 @@ class UserDataManager: ObservableObject {
             var roadmap = self.roadmapScores
             var trials = self.timeTrialScores
             var unlocked = self.unlockedStage
+            var freestyle = self.freestyleScore
 
             for (key, value) in update {
                 if let intVal = value as? Int {
@@ -230,6 +338,8 @@ class UserDataManager: ObservableObject {
                         trials[key] = intVal
                     } else if key == "unlockedStages" {
                         unlocked = intVal
+                    } else if key == "freestyleScore" {
+                        freestyle = intVal
                     }
                 }
             }
@@ -237,10 +347,12 @@ class UserDataManager: ObservableObject {
             self.roadmapScores = roadmap
             self.timeTrialScores = trials
             self.unlockedStage = unlocked
+            self.freestyleScore = freestyle
 
             UserDefaults.standard.set(roadmap, forKey: "roadmapScores")
             UserDefaults.standard.set(trials, forKey: "timeTrialScores")
             UserDefaults.standard.set(unlocked, forKey: "unlockedStage")
+            UserDefaults.standard.set(freestyle, forKey: "freestyleScore")
         }
     }
 }

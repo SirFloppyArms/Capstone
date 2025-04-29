@@ -12,7 +12,7 @@ struct ContentView: View {
                 VStack(spacing: 24) {
                     header
 
-                    Spacer(minLength: 20)
+                    Spacer(minLength: 5)
 
                     logo
 
@@ -27,6 +27,21 @@ struct ContentView: View {
 
                     VStack(spacing: 20) {
                         FeatureGrid()
+                        
+                        NavigationCard(
+                            icon: "road.lanes",
+                            title: "Freestyle",
+                            color: .orange,
+                            destination: FreestyleView()
+                        )
+                        
+                        NavigationCard(
+                            icon: "questionmark.circle.fill",
+                            title: "Daily Question",
+                            color: .purple,
+                            destination: DailyQuestionView()
+                        )
+                        
                         NavigationCard(
                             icon: "chart.bar.fill",
                             title: "Leaderboard",
@@ -37,10 +52,10 @@ struct ContentView: View {
                     .padding(.horizontal)
                     .frame(maxWidth: 600)
 
-                    Spacer(minLength: 32)
+                    Spacer(minLength: 12)
                 }
                 .padding(.top, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 10)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .animation(.easeInOut(duration: 0.3), value: colorScheme)
             }

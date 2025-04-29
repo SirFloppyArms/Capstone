@@ -4,88 +4,95 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct LeaderboardView: View {
-    @State private var roadmapScore: Int = 0
-    @State private var timeTrialScore: Int = 0
-    @State private var totalScore: Int = 0
-    @State private var roadmapPercent: Double = 0
-    @State private var timeTrialPercent: Double = 0
-    @State private var totalPercent: Double = 0
+    @State private var roadmapScore = 0
+    @State private var timeTrialScore = 0
+    @State private var freestyleScore = 0
+    @State private var dailyScore = 0
+    @State private var totalScore = 0
+
+    @State private var roadmapPercent = 0.0
+    @State private var timeTrialPercent = 0.0
+
     @State private var topUsers: [(username: String, score: Int)] = []
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 25) {
-                Text("📊 Leaderboard")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .padding(.top)
-
-                // Your Stats Section
-                VStack(spacing: 16) {
-                    Text("Your Stats")
-                        .font(.title2.weight(.semibold))
-                        .padding(.bottom, 4)
-
-                    StatRow(label: "📍 Roadmap Score", score: roadmapScore, total: 300, percent: roadmapPercent)
-                    StatRow(label: "⏱ Time Trials Score", score: timeTrialScore, total: 300, percent: timeTrialPercent)
-                    Divider()
-                    StatRow(label: "🏁 Total Score", score: totalScore, total: 600, percent: totalPercent)
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
-                .padding(.horizontal)
-
-                // Global Leaderboard Section
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("🌍 Top 10 Global Leaderboard")
-                        .font(.title3.weight(.semibold))
-                        .padding(.bottom, 4)
-
-                    ForEach(Array(topUsers.prefix(10).enumerated()), id: \.offset) { index, user in
-                        HStack(spacing: 15) {
-                            // Rank + Medal
-                            Text(rankLabel(for: index))
-                                .font(.subheadline.bold())
-                                .frame(alignment: .leading)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(user.username)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                            }
-
-                            Spacer()
-                            
-                            // Score value
-                            Text("\(user.score)")
-                                .font(.headline.monospacedDigit())
-                                .foregroundColor(.primary)
-
-                            // Score ring
-                            ScoreRingView(score: user.score)
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color(.systemGray6).opacity(0.5))
-                        .cornerRadius(12)
-                    }
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
-                .padding(.horizontal)
-
-                Spacer()
+            VStack(spacing: 30) {
+                header
+                yourStatsSection
+                leaderboardSection
             }
+            .padding(.top)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .onAppear {
             loadUserScores()
             fetchTopUsers()
         }
     }
 
-    func rankLabel(for index: Int) -> String {
+    private var header: some View {
+        Text("📊 Leaderboard")
+            .font(.system(size: 34, weight: .bold, design: .rounded))
+            .padding(.top)
+    }
+
+    private var yourStatsSection: some View {
+        VStack(spacing: 16) {
+            Text("Your Stats")
+                .font(.title2.bold())
+                .padding(.bottom, 8)
+
+            StatRow(label: "📍 Roadmap Score", score: roadmapScore, total: 300, percent: roadmapPercent)
+            StatRow(label: "⏱ Time Trials Score", score: timeTrialScore, total: 300, percent: timeTrialPercent)
+            RawStatRow(label: "🗓 Daily Questions Score", score: dailyScore)
+            RawStatRow(label: "🎯 Freestyle Score", score: freestyleScore) // 👈 ADD THIS
+
+            Divider()
+
+            RawStatRow(label: "🏁 Total Score", score: totalScore)
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
+        .padding(.horizontal)
+    }
+
+    private var leaderboardSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("🌍 Top 10 Global Leaderboard")
+                .font(.title3.bold())
+                .padding(.bottom, 4)
+
+            ForEach(Array(topUsers.prefix(10).enumerated()), id: \.offset) { index, user in
+                HStack(spacing: 15) {
+                    Text(rankLabel(for: index))
+                        .font(.subheadline.bold())
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(user.username)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+
+                    Spacer()
+
+                    Text("\(user.score)")
+                        .font(.headline.monospacedDigit())
+                        .bold()
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(Color(.systemGray6).opacity(0.5))
+                .cornerRadius(12)
+            }
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
+        .padding(.horizontal)
+    }
+
+    private func rankLabel(for index: Int) -> String {
         switch index {
         case 0: return "🥇"
         case 1: return "🥈"
@@ -94,60 +101,74 @@ struct LeaderboardView: View {
         }
     }
 
-    func loadUserScores() {
+    private func loadUserScores() {
         let group = DispatchGroup()
 
         group.enter()
         UserDataManager.shared.fetchRoadmapScores { scores, _ in
             roadmapScore = scores?.values.reduce(0, +) ?? 0
-            roadmapPercent = Double(roadmapScore) / 300 * 100
+            roadmapPercent = (Double(roadmapScore) / 300) * 100
             group.leave()
         }
 
         group.enter()
         UserDataManager.shared.fetchTimeTrialScores { scores, _ in
             timeTrialScore = scores?.values.reduce(0, +) ?? 0
-            timeTrialPercent = Double(timeTrialScore) / 300 * 100
+            timeTrialPercent = (Double(timeTrialScore) / 300) * 100
+            group.leave()
+        }
+
+        group.enter()
+        UserDataManager.shared.fetchDailyQuestionScore { score, _ in
+            dailyScore = score ?? 0
+            group.leave()
+        }
+
+        group.enter()
+        UserDataManager.shared.fetchFreestyleScore { score in
+            freestyleScore = score
             group.leave()
         }
 
         group.notify(queue: .main) {
-            totalScore = roadmapScore + timeTrialScore
-            totalPercent = Double(totalScore) / 600 * 100
+            totalScore = roadmapScore + timeTrialScore + dailyScore + freestyleScore
         }
     }
 
-    func fetchTopUsers() {
+    private func fetchTopUsers() {
         let db = Firestore.firestore()
 
-        // Load from cache first
-        db.collection("users").getDocuments(source: .cache) { snapshot, error in
+        // First load from cache
+        db.collection("users").getDocuments(source: .cache) { snapshot, _ in
             if let documents = snapshot?.documents {
                 updateLeaderboard(from: documents)
             }
 
-            // Try refreshing from server
-            db.collection("users").getDocuments(source: .server) { snapshot, error in
+            // Then refresh from server
+            db.collection("users").getDocuments(source: .server) { snapshot, _ in
                 if let documents = snapshot?.documents {
                     updateLeaderboard(from: documents)
                 }
             }
         }
+    }
 
-        func updateLeaderboard(from documents: [QueryDocumentSnapshot]) {
-            var leaderboard: [(String, Int)] = []
+    private func updateLeaderboard(from documents: [QueryDocumentSnapshot]) {
+        var leaderboard: [(String, Int)] = []
 
-            for doc in documents {
-                let data = doc.data()
-                let name = data["username"] as? String ?? "Unknown"
-                let roadmap = data.filter { $0.key.contains("RoadmapStage") }.compactMap { $0.value as? Int }.reduce(0, +)
-                let timeTrials = data.filter { $0.key.contains("TimeTrialStage") }.compactMap { $0.value as? Int }.reduce(0, +)
-                leaderboard.append((name, roadmap + timeTrials))
-            }
+        for doc in documents {
+            let data = doc.data()
+            let username = data["username"] as? String ?? "Unknown"
+            let roadmap = data.filter { $0.key.contains("RoadmapStage") }.compactMap { $0.value as? Int }.reduce(0, +)
+            let timeTrials = data.filter { $0.key.contains("TimeTrialStage") }.compactMap { $0.value as? Int }.reduce(0, +)
+            let dailyScore = data["dailyScore"] as? Int ?? 0
+            let freestyleScore = data["freestyleScore"] as? Int ?? 0
 
-            leaderboard.sort { $0.1 > $1.1 }
-            topUsers = leaderboard
+            leaderboard.append((username, roadmap + timeTrials + dailyScore + freestyleScore))
         }
+
+        leaderboard.sort { $0.1 > $1.1 }
+        topUsers = leaderboard
     }
 }
 
@@ -173,32 +194,17 @@ struct StatRow: View {
     }
 }
 
-struct ScoreRingView: View {
+struct RawStatRow: View {
+    var label: String
     var score: Int
-    var maxScore: Int = 600
 
     var body: some View {
-        let percent = Double(score) / Double(maxScore)
-        return ZStack {
-            Circle()
-                .stroke(Color.secondary.opacity(0.2), lineWidth: 6)
-                .frame(width: 40, height: 40)
-            Circle()
-                .trim(from: 0, to: percent)
-                .stroke(
-                    AngularGradient(
-                        gradient: Gradient(colors: [.blue, .teal, .purple]),
-                        center: .center
-                    ),
-                    style: StrokeStyle(lineWidth: 6, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .frame(width: 40, height: 40)
-                .animation(.easeOut(duration: 1), value: percent)
-            Text("\(Int(percent * 100))%")
-                .font(.caption2)
+        HStack {
+            Text(label)
+            Spacer()
+            Text("\(score)")
                 .bold()
-                .foregroundColor(.primary)
         }
+        .padding(.vertical, 4)
     }
 }
