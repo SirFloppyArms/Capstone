@@ -6,28 +6,42 @@ import FirebaseFirestore
 struct LeaderboardView: View {
     @State private var roadmapScore = 0
     @State private var timeTrialScore = 0
-    @State private var freestyleScore = 0
     @State private var dailyScore = 0
+    @State private var freestyleScore = 0
     @State private var totalScore = 0
 
     @State private var roadmapPercent = 0.0
     @State private var timeTrialPercent = 0.0
 
-    @State private var topUsers: [(username: String, score: Int)] = []
+    @State private var topUsers: [(id: String, username: String, score: Int)] = []
+    @State private var showFriendsOnly = false
+
+    @State private var selectedUserID: String?
+    @State private var showProfile = false
+
+    @ObservedObject private var session = UserSessionManager.shared
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 30) {
-                header
-                yourStatsSection
-                leaderboardSection
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 30) {
+                    header
+                    yourStatsSection
+                    leaderboardToggle
+                    leaderboardSection
+                }
+                .padding(.top)
             }
-            .padding(.top)
-        }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .onAppear {
-            loadUserScores()
-            fetchTopUsers()
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .onAppear {
+                loadUserScores()
+                fetchTopUsers()
+            }
+            .sheet(isPresented: $showProfile) {
+                if let userID = selectedUserID {
+                    UserProfileView(userID: userID)
+                }
+            }
         }
     }
 
@@ -46,10 +60,8 @@ struct LeaderboardView: View {
             StatRow(label: "📍 Roadmap Score", score: roadmapScore, total: 300, percent: roadmapPercent)
             StatRow(label: "⏱ Time Trials Score", score: timeTrialScore, total: 300, percent: timeTrialPercent)
             RawStatRow(label: "🗓 Daily Questions Score", score: dailyScore)
-            RawStatRow(label: "🎯 Freestyle Score", score: freestyleScore) // 👈 ADD THIS
-
+            RawStatRow(label: "🎯 Freestyle Score", score: freestyleScore)
             Divider()
-
             RawStatRow(label: "🏁 Total Score", score: totalScore)
         }
         .padding()
@@ -57,22 +69,32 @@ struct LeaderboardView: View {
         .padding(.horizontal)
     }
 
+    private var leaderboardToggle: some View {
+        Picker("Leaderboard Type", selection: $showFriendsOnly) {
+            Text("Global").tag(false)
+            Text("Friends").tag(true)
+        }
+        .pickerStyle(SegmentedPickerStyle())
+        .padding(.horizontal)
+    }
+
     private var leaderboardSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("🌍 Top 10 Global Leaderboard")
+            Text(showFriendsOnly ? "👥 Friends Leaderboard" : "🌍 Global Leaderboard")
                 .font(.title3.bold())
-                .padding(.bottom, 4)
 
-            ForEach(Array(topUsers.prefix(10).enumerated()), id: \.offset) { index, user in
+            ForEach(filteredLeaderboard().prefix(10), id: \.id) { user in
                 HStack(spacing: 15) {
-                    Text(rankLabel(for: index))
+                    Text(rankLabel(for: topUsers.firstIndex { $0.id == user.id } ?? 0))
                         .font(.subheadline.bold())
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    Button {
+                        selectedUserID = user.id
+                        showProfile = true
+                    } label: {
                         Text(user.username)
                             .font(.headline)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                            .foregroundColor(.blue)
                     }
 
                     Spacer()
@@ -90,6 +112,10 @@ struct LeaderboardView: View {
         .padding()
         .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
         .padding(.horizontal)
+    }
+
+    private func filteredLeaderboard() -> [(id: String, username: String, score: Int)] {
+        showFriendsOnly ? topUsers.filter { session.friendIDs.contains($0.id) } : topUsers
     }
 
     private func rankLabel(for index: Int) -> String {
@@ -138,37 +164,61 @@ struct LeaderboardView: View {
     private func fetchTopUsers() {
         let db = Firestore.firestore()
 
-        // First load from cache
-        db.collection("users").getDocuments(source: .cache) { snapshot, _ in
-            if let documents = snapshot?.documents {
-                updateLeaderboard(from: documents)
+        db.collection("users").getDocuments(source: .default) { snapshot, _ in
+            var leaderboard: [(String, String, Int)] = []
+
+            for doc in snapshot?.documents ?? [] {
+                let data = doc.data()
+                let id = doc.documentID
+                let username = data["username"] as? String ?? "Unknown"
+                let roadmap = data.filter { $0.key.contains("RoadmapStage") }.compactMap { $0.value as? Int }.reduce(0, +)
+                let timeTrials = data.filter { $0.key.contains("TimeTrialStage") }.compactMap { $0.value as? Int }.reduce(0, +)
+                let daily = data["dailyScore"] as? Int ?? 0
+                let freestyle = data["freestyleScore"] as? Int ?? 0
+                let total = roadmap + timeTrials + daily + freestyle
+                leaderboard.append((id, username, total))
             }
 
-            // Then refresh from server
-            db.collection("users").getDocuments(source: .server) { snapshot, _ in
-                if let documents = snapshot?.documents {
-                    updateLeaderboard(from: documents)
-                }
-            }
+            leaderboard.sort { $0.2 > $1.2 }
+            topUsers = leaderboard
         }
     }
+}
 
-    private func updateLeaderboard(from documents: [QueryDocumentSnapshot]) {
-        var leaderboard: [(String, Int)] = []
+class UserSessionManager: ObservableObject {
+    static let shared = UserSessionManager()
+    
+    @Published var friendIDs: [String] = []
+    
+    private var listener: ListenerRegistration?
+    private let db = Firestore.firestore()
+    
+    private init() {
+        startListeningToFriendChanges()
+    }
+    
+    private func startListeningToFriendChanges() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
 
-        for doc in documents {
-            let data = doc.data()
-            let username = data["username"] as? String ?? "Unknown"
-            let roadmap = data.filter { $0.key.contains("RoadmapStage") }.compactMap { $0.value as? Int }.reduce(0, +)
-            let timeTrials = data.filter { $0.key.contains("TimeTrialStage") }.compactMap { $0.value as? Int }.reduce(0, +)
-            let dailyScore = data["dailyScore"] as? Int ?? 0
-            let freestyleScore = data["freestyleScore"] as? Int ?? 0
-
-            leaderboard.append((username, roadmap + timeTrials + dailyScore + freestyleScore))
-        }
-
-        leaderboard.sort { $0.1 > $1.1 }
-        topUsers = leaderboard
+        listener = db.collection("users").document(uid)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let data = snapshot?.data(), error == nil else { return }
+                self?.friendIDs = data["friends"] as? [String] ?? []
+            }
+    }
+    
+    func addFriend(_ friendID: String) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(uid).updateData([
+            "friends": FieldValue.arrayUnion([friendID])
+        ])
+    }
+    
+    func removeFriend(_ friendID: String) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        db.collection("users").document(uid).updateData([
+            "friends": FieldValue.arrayRemove([friendID])
+        ])
     }
 }
 
