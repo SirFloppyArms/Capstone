@@ -3,6 +3,10 @@ import Firebase
 import FirebaseAuth
 import FirebaseFirestore
 
+extension String: Identifiable {
+    public var id: String { self }
+}
+
 struct LeaderboardView: View {
     @State private var roadmapScore = 0
     @State private var timeTrialScore = 0
@@ -37,10 +41,8 @@ struct LeaderboardView: View {
                 loadUserScores()
                 fetchTopUsers()
             }
-            .sheet(isPresented: $showProfile) {
-                if let userID = selectedUserID {
-                    UserProfileView(userID: userID)
-                }
+            .sheet(item: $selectedUserID) { userID in
+                UserProfileView(userID: userID)
             }
         }
     }

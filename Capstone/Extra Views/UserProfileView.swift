@@ -5,10 +5,15 @@ struct UserProfileView: View {
     let userID: String
 
     @State private var username = "Loading..."
-    @State private var scores: [String: Int] = [:]
+    @State private var roadmapScore = 0
+    @State private var timeTrialScore = 0
+    @State private var dailyScore = 0
+    @State private var freestyleScore = 0
     @State private var totalScore = 0
     @State private var isFriend = false
     @State private var showRemoveConfirmation = false
+    @State private var showFriendActionConfirmation = false
+    @State private var friendActionMessage = ""
 
     @ObservedObject private var session = UserSessionManager.shared
 
@@ -17,28 +22,15 @@ struct UserProfileView: View {
             VStack(spacing: 24) {
                 profileHeader
 
-                scoreSummaryCard
+                performanceBreakdown
 
-                if isFriend {
-                    Button(role: .destructive) {
-                        showRemoveConfirmation = true
-                    } label: {
-                        Label("Remove Friend", systemImage: "person.crop.circle.badge.minus")
-                    }
-                    .confirmationDialog("Are you sure you want to remove \(username) as a friend?",
-                                        isPresented: $showRemoveConfirmation) {
-                        Button("Remove Friend", role: .destructive) {
-                            session.removeFriend(userID)
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                } else {
-                    Button {
-                        session.addFriend(userID)
-                    } label: {
-                        Label("Add Friend", systemImage: "person.crop.circle.badge.plus")
-                    }
-                    .buttonStyle(.borderedProminent)
+                friendButton
+                
+                if showFriendActionConfirmation {
+                    Text(friendActionMessage)
+                        .font(.footnote)
+                        .foregroundColor(.green)
+                        .transition(.opacity)
                 }
 
                 Spacer()
@@ -51,7 +43,6 @@ struct UserProfileView: View {
         }
     }
 
-    // MARK: - Profile Header
     private var profileHeader: some View {
         VStack(spacing: 12) {
             ZStack {
@@ -89,44 +80,69 @@ struct UserProfileView: View {
         }
     }
 
-    // MARK: - Score Breakdown Card
-    private var scoreSummaryCard: some View {
+    private var performanceBreakdown: some View {
         VStack(spacing: 16) {
             Text("📈 Performance Breakdown")
                 .font(.title3.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            ForEach(["Roadmap", "Time Trials", "Daily", "Freestyle"], id: \.self) { category in
-                if let score = scores[category] {
-                    ScoreBar(label: category, value: score)
-                }
-            }
+            StatRow(label: "📍 Roadmap Score", score: roadmapScore, total: 300, percent: percent(for: roadmapScore))
+            StatRow(label: "⏱ Time Trials Score", score: timeTrialScore, total: 300, percent: percent(for: timeTrialScore))
+            RawStatRow(label: "🗓 Daily Questions Score", score: dailyScore)
+            RawStatRow(label: "🎯 Freestyle Score", score: freestyleScore)
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 20).fill(Color(.systemBackground)).shadow(radius: 4))
     }
 
-    // MARK: - Data Fetching
+    private var friendButton: some View {
+        Group {
+            if isFriend {
+                Button(role: .destructive) {
+                    showRemoveConfirmation = true
+                } label: {
+                    Label("Remove Friend", systemImage: "person.crop.circle.badge.minus")
+                }
+                .confirmationDialog("Are you sure you want to remove \(username) as a friend?", isPresented: $showRemoveConfirmation) {
+                    Button("Remove Friend", role: .destructive) {
+                        session.removeFriend(userID)
+                        friendActionMessage = "\(username) removed from friends"
+                        isFriend = false
+                        showFriendActionConfirmation = true
+                        hideConfirmationAfterDelay()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                }
+                .buttonStyle(.bordered)
+            } else {
+                Button {
+                    session.addFriend(userID)
+                    friendActionMessage = "\(username) added as a friend"
+                    isFriend = true
+                    showFriendActionConfirmation = true
+                    hideConfirmationAfterDelay()
+                } label: {
+                    Label("Add Friend", systemImage: "person.crop.circle.badge.plus")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+
     private func fetchUserData() {
         let db = Firestore.firestore()
         db.collection("users").document(userID).getDocument { snapshot, _ in
             if let data = snapshot?.data() {
                 username = data["username"] as? String ?? "Unknown"
 
-                let roadmap = data.filter { $0.key.contains("RoadmapStage") }
+                roadmapScore = data.filter { $0.key.contains("RoadmapStage") }
                     .compactMap { $0.value as? Int }.reduce(0, +)
-                let timeTrials = data.filter { $0.key.contains("TimeTrialStage") }
+                timeTrialScore = data.filter { $0.key.contains("TimeTrialStage") }
                     .compactMap { $0.value as? Int }.reduce(0, +)
-                let daily = data["dailyScore"] as? Int ?? 0
-                let freestyle = data["freestyleScore"] as? Int ?? 0
+                dailyScore = data["dailyScore"] as? Int ?? 0
+                freestyleScore = data["freestyleScore"] as? Int ?? 0
 
-                scores = [
-                    "Roadmap": roadmap,
-                    "Time Trials": timeTrials,
-                    "Daily": daily,
-                    "Freestyle": freestyle
-                ]
-                totalScore = roadmap + timeTrials + daily + freestyle
+                totalScore = roadmapScore + timeTrialScore + dailyScore + freestyleScore
             }
         }
     }
@@ -134,28 +150,14 @@ struct UserProfileView: View {
     private func checkFriendStatus() {
         isFriend = session.friendIDs.contains(userID)
     }
-}
 
-// MARK: - ScoreBar View
-struct ScoreBar: View {
-    var label: String
-    var value: Int
-    private let maxScore = 300
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(label)
-                    .font(.subheadline)
-                    .bold()
-                Spacer()
-                Text("\(value)")
-                    .font(.subheadline.monospacedDigit())
-            }
-
-            ProgressView(value: min(Double(value), Double(maxScore)), total: Double(maxScore))
-                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-                .animation(.easeInOut(duration: 0.4), value: value)
+    private func percent(for score: Int) -> Double {
+        min(Double(score) / 300.0 * 100.0, 100.0)
+    }
+    
+    private func hideConfirmationAfterDelay() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            showFriendActionConfirmation = false
         }
     }
 }
