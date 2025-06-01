@@ -52,7 +52,7 @@ struct FreestyleView: View {
                     .cornerRadius(10)
                 }
                 
-                Text("Score: \(freestyleScore)")
+                Text("Total Score: \(freestyleScore)")
                     .font(.headline)
                     .padding(.top, 20)
             } else {

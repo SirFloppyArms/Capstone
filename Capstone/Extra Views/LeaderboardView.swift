@@ -85,18 +85,26 @@ struct LeaderboardView: View {
             Text(showFriendsOnly ? "👥 Friends Leaderboard" : "🌍 Global Leaderboard")
                 .font(.title3.bold())
 
-            ForEach(filteredLeaderboard().prefix(10), id: \.id) { user in
+            let filtered = filteredLeaderboard().prefix(10)
+
+            ForEach(Array(filtered.enumerated()), id: \.element.id) { index, user in
                 HStack(spacing: 15) {
-                    Text(rankLabel(for: topUsers.firstIndex { $0.id == user.id } ?? 0))
+                    Text(rankLabel(for: index))
                         .font(.subheadline.bold())
 
-                    Button {
-                        selectedUserID = user.id
-                        showProfile = true
-                    } label: {
+                    if user.id != Auth.auth().currentUser?.uid {
+                        Button {
+                            selectedUserID = user.id
+                            showProfile = true
+                        } label: {
+                            Text(user.username)
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                        }
+                    } else {
                         Text(user.username)
                             .font(.headline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.primary)
                     }
 
                     Spacer()
@@ -117,7 +125,15 @@ struct LeaderboardView: View {
     }
 
     private func filteredLeaderboard() -> [(id: String, username: String, score: Int)] {
-        showFriendsOnly ? topUsers.filter { session.friendIDs.contains($0.id) } : topUsers
+        guard let currentUserID = Auth.auth().currentUser?.uid else {
+            return []
+        }
+
+        if showFriendsOnly {
+            return topUsers.filter { session.friendIDs.contains($0.id) || $0.id == currentUserID }
+        } else {
+            return topUsers
+        }
     }
 
     private func rankLabel(for index: Int) -> String {
