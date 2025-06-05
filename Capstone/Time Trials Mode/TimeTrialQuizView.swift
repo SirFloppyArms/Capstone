@@ -116,7 +116,8 @@ struct TimeTrialQuizView: View {
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
                     .padding(.horizontal)
-                    .lineLimit(nil)
+                    .lineLimit(5)
+                    .minimumScaleFactor(0.5) // Shrinks text as needed
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .center)
 
@@ -151,14 +152,15 @@ struct TimeTrialQuizView: View {
                     } label: {
                         Text(choice)
                             .font(.body)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                                .background(getButtonColor(for: choice))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(3)
+                            .minimumScaleFactor(0.6) // Shrinks long answers
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                            .background(getButtonColor(for: choice))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
                     .disabled(selectedAnswer != nil)
                 }

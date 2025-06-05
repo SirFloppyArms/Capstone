@@ -105,10 +105,10 @@ struct QuizView: View {
                 Text(question.text)
                     .font(.title2.weight(.semibold))
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
+                    .lineLimit(5)
+                    .minimumScaleFactor(0.5) // Shrinks the font to fit if too long
                     .frame(maxWidth: .infinity, alignment: .center)
                     .foregroundColor(.primary)
-                    .lineLimit(5)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal)
 
@@ -144,7 +144,8 @@ struct QuizView: View {
                         Text(choice)
                             .font(.body)
                             .multilineTextAlignment(.center)
-                            .lineLimit(nil)
+                            .lineLimit(3) // Limit number of lines
+                            .minimumScaleFactor(0.6) // Shrinks text to fit
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding()

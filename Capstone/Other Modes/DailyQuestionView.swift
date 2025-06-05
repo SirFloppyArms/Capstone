@@ -136,10 +136,14 @@ class DailyQuestionViewModel: ObservableObject {
                 let alreadyMarked = (doc.data()?["lastDailyAnswerDate"] as? String) == todayKey
 
                 if !alreadyMarked {
-                    try await userRef.setData([
-                        "lastDailyAnswerDate": todayKey,
-                        "dailyScore": FieldValue.increment(Int64(2))
-                    ], merge: true)
+                    var data: [String: Any] = [
+                        "lastDailyAnswerDate": todayKey
+                    ]
+                    if isCorrect == true {
+                        data["dailyScore"] = FieldValue.increment(Int64(2))
+                    }
+
+                    try await userRef.setData(data, merge: true)
                 }
             } catch {
                 print("⚠️ Failed to update user progress: \(error.localizedDescription)")
@@ -352,12 +356,18 @@ actor DailyQuestionManager {
 
         let todayKey = Self.todayDateKey()
         let docRef = db.collection("dailyQuestions").document(todayKey)
-
         let snapshot = try await docRef.getDocument()
 
-        // If today's question exists, return it
-        if !snapshot.exists {
-            // fallback to local question if none on Firestore
+        if snapshot.exists {
+            // ✅ Try to parse the existing question
+            if let data = snapshot.data()?["question"] as? [String: Any],
+               let question = DailyQuestion(from: data) {
+                return question
+            } else {
+                throw DailyQuestionError.invalidFormat
+            }
+        } else {
+            // ❌ Not found in Firebase — use local file and upload it
             guard let fallback = loadRandomQuestionFromFile() else {
                 throw DailyQuestionError.notFound
             }
@@ -367,18 +377,6 @@ actor DailyQuestionManager {
             ])
             return fallback
         }
-
-        // Otherwise, get a random question from the bundled file
-        guard let fallbackQuestion = loadRandomQuestionFromFile() else {
-            throw DailyQuestionError.notFound
-        }
-
-        // Upload it to Firestore as today's question
-        try await docRef.setData([
-            "question": fallbackQuestion.toDictionary()
-        ])
-
-        return fallbackQuestion
     }
 
     private func loadRandomQuestionFromFile() -> DailyQuestion? {
