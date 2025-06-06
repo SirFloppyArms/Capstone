@@ -6,59 +6,79 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                background
+            GeometryReader { geo in
+                ZStack {
+                    background
 
-                VStack(spacing: 24) {
-                    header
+                    VStack(spacing: 0) {
+                        // Header - always at top
+                        header
+                            .padding(.top)
+                            .padding(.horizontal)
+                            .layoutPriority(1)
 
-                    Spacer(minLength: 5)
+                        Spacer()
 
-                    logo
+                        // Logo & Slogan - centered but slightly toward the top
+                        VStack(spacing: geo.size.height * 0.02) {
+                            logo
+                                .frame(width: geo.size.width * 0.25, height: geo.size.width * 0.25)
 
-                    Text("Master the road before you hit it.")
-                        .font(.headline)
-                        .foregroundColor(textColor.opacity(0.85))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                        .minimumScaleFactor(0.8)
+                            Text("Master the road before you hit it.")
+                                .font(.headline)
+                                .foregroundColor(textColor.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                                .minimumScaleFactor(0.5)
+                        }
+                        .layoutPriority(0)
 
-                    Spacer()
+                        Spacer()
 
-                    VStack(spacing: 20) {
-                        FeatureGrid()
-                        
-                        NavigationCard(
-                            icon: "road.lanes",
-                            title: "Freestyle",
-                            color: .orange,
-                            destination: FreestyleView()
-                        )
-                        
-                        NavigationCard(
-                            icon: "questionmark.circle.fill",
-                            title: "Daily Question",
-                            color: .purple,
-                            destination: DailyQuestionView()
-                        )
-                        
-                        NavigationCard(
-                            icon: "chart.bar.fill",
-                            title: "Leaderboard",
-                            color: .green,
-                            destination: LeaderboardView()
-                        )
+                        // Feature Grid + Navigation Cards - anchored to bottom
+                        VStack(spacing: 20) {
+                            FeatureGrid()
+                                .frame(maxWidth: 600)
+
+                            VStack(spacing: 14) {
+                                NavigationCard(
+                                    icon: "road.lanes",
+                                    title: "Freestyle",
+                                    color: .orange,
+                                    destination: FreestyleView()
+                                )
+
+                                NavigationCard(
+                                    icon: "questionmark.circle.fill",
+                                    title: "Daily Question",
+                                    color: .purple,
+                                    destination: DailyQuestionView()
+                                )
+
+                                NavigationCard(
+                                    icon: "chart.bar.fill",
+                                    title: "Leaderboard",
+                                    color: .green,
+                                    destination: LeaderboardView()
+                                )
+
+                                NavigationCard(
+                                    icon: "book.fill",
+                                    title: "Handbook",
+                                    color: .blue,
+                                    destination: HandbookPDFView()
+                                )
+                            }
+                            .frame(maxWidth: 600)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom)
+                        .layoutPriority(1)
                     }
-                    .padding(.horizontal)
-                    .frame(maxWidth: 600)
-
-                    Spacer(minLength: 12)
+                    .frame(width: geo.size.width, height: geo.size.height)
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 10)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .animation(.easeInOut(duration: 0.3), value: colorScheme)
             }
+            .navigationBarHidden(true)
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
@@ -68,7 +88,7 @@ struct ContentView: View {
         LinearGradient(
             gradient: Gradient(colors: colorScheme == .dark
                                ? [Color(red: 0.07, green: 0.1, blue: 0.18), Color(red: 0.12, green: 0.14, blue: 0.22)]
-                               : [Color(red: 0.75, green: 0.88, blue: 1.0), Color(red: 0.6, green: 0.84, blue: 1.0)]),
+                               : [Color(red: 0.95, green: 0.98, blue: 1.0), Color(red: 0.8, green: 0.9, blue: 1.0)]),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -89,7 +109,7 @@ struct ContentView: View {
             Text("SmartDrive Pro")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(textColor)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7)
 
             Spacer()
 
@@ -99,7 +119,6 @@ struct ContentView: View {
                     .foregroundColor(textColor)
             }
         }
-        .padding(.horizontal)
     }
 
     // MARK: - Logo
@@ -107,11 +126,9 @@ struct ContentView: View {
         Image(colorScheme == .dark ? "AppLogoDark" : "AppLogoLight")
             .resizable()
             .scaledToFit()
-            .frame(width: 110, height: 110)
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .shadow(radius: 10)
             .matchedGeometryEffect(id: "app-logo", in: animation)
-            .padding(.bottom, 8)
     }
 
     private var textColor: Color {

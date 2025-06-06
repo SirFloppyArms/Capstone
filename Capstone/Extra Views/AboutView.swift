@@ -62,19 +62,17 @@ struct AboutView: View {
                         FeatureItem(icon: "wifi.slash", title: "Offline Access", description: "Study anytime, anywhere, without needing an internet connection.")
                     }
                 }
-
                 
-                // Developer Info
+                // Copyright Notice
                 AboutCard {
-                    Label("Developer", systemImage: "person.crop.circle")
+                    Label("Copyright", systemImage: "lock.shield.fill")
                         .font(.title3.bold())
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Nolan Law", systemImage: "person.fill")
-                        Label("nolan.law@yahoo.com", systemImage: "envelope.fill")
-                        Label("(204) 403-8767", systemImage: "phone.fill")
+                        Text("© 2025 Nolan Law. All rights reserved.")
+                        Text("SmartDrive Pro, including its design, code, content, and features, is original work created for educational purposes. Redistribution or reproduction of any part of this app is prohibited without permission.")
                     }
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundColor(.secondary)
                 }
                 
@@ -93,20 +91,22 @@ struct AboutView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 }
+                
+                // Developer Info
+                AboutCard {
+                    Label("Developer", systemImage: "person.crop.circle")
+                        .font(.title3.bold())
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Nolan Law", systemImage: "person.fill")
+                        Label("nolan.law@yahoo.com", systemImage: "envelope.fill")
+                        Label("(204) 403-8767", systemImage: "phone.fill")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                }
 
                 Spacer(minLength: 2)
-            }
-            // Copyright Notice
-            AboutCard {
-                Label("Copyright", systemImage: "lock.shield.fill")
-                    .font(.title3.bold())
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("© 2025 Nolan Law. All rights reserved.")
-                    Text("SmartDrive Pro, including its design, code, content, and features, is original work created for educational purposes. Redistribution or reproduction of any part of this app is prohibited without permission.")
-                }
-                .font(.footnote)
-                .foregroundColor(.secondary)
             }
             .padding(.horizontal)
         }
